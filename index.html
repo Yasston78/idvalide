@@ -138,7 +138,7 @@
     <p style="margin-top:8px">© 2026 IDValide — idvalide.fr</p>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/vision_bundle.js"></script>
+  <script src="vendor/vision_bundle.js"></script>
   <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
   <script>
     // ─── Paiement Paddle (checkout overlay) — ne doit JAMAIS bloquer l'outil ───
@@ -213,19 +213,25 @@
       document.getElementById('etapeResult').style.display = n === 3 ? 'block' : 'none';
     }
 
-    // ─── Détecteur de visage MediaPipe ───
+    // ─── Détecteur de visage MediaPipe (bundle local, import dynamique) ───
     async function initDetector() {
       if (faceDetector) return;
-      if (typeof FilesetResolver === 'undefined' || typeof FaceDetector === 'undefined') {
-        detectionOk = false;
-        return; // CDN indisponible → mode dégradé
-      }
       try {
-        const vision = await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm');
-        faceDetector = await FaceDetector.createFromOptions(vision, {
-          baseOptions: { modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite', delegate: 'GPU' },
-          runningMode: 'IMAGE', minDetectionConfidence: 0.5,
-        });
+        const vision = await import('./vendor/vision_bundle.js');
+        const resolver = vision.FilesetResolver;
+        const v = await resolver.forVisionTasks('vendor/wasm/');
+        try {
+          faceDetector = await vision.FaceDetector.createFromOptions(v, {
+            baseOptions: { modelAssetPath: 'vendor/blaze_face.tflite', delegate: 'GPU' },
+            runningMode: 'IMAGE', minDetectionConfidence: 0.5,
+          });
+        } catch (gpuErr) {
+          // fallback CPU (certains appareils/navigateurs sans GPU WebGL)
+          faceDetector = await vision.FaceDetector.createFromOptions(v, {
+            baseOptions: { modelAssetPath: 'vendor/blaze_face.tflite', delegate: 'CPU' },
+            runningMode: 'IMAGE', minDetectionConfidence: 0.5,
+          });
+        }
         detectionOk = true;
       } catch (e) {
         detectionOk = false;
