@@ -7,48 +7,48 @@
   <meta name="description" content="Prenez une photo d'identité conforme aux normes ANTS depuis votre téléphone : carte d'identité, passeport, permis. Gratuit, vérifiée, garantie.">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #F5F7FA; color: #1B2A4A; line-height: 1.6; }
-    header { background: #1B2A4A; padding: 14px 20px; color: #fff; display: flex; align-items: center; justify-content: space-between; }
-    .logo { font-weight: 800; font-size: 17px; }
-    .logo span { color: #F5A623; }
-    nav a { color: #fff; text-decoration: none; font-size: 13px; font-weight: 600; background: #F5A623; color: #1B2A4A; padding: 7px 14px; border-radius: 8px; }
-    .hero { text-align: center; padding: 44px 20px 24px; max-width: 680px; margin: 0 auto; }
-    .badge { background: #FFF3E0; color: #B7791F; font-size: 13px; font-weight: 700; border-radius: 20px; padding: 6px 14px; display: inline-block; margin-bottom: 14px; }
-    h1 { font-size: 32px; line-height: 1.25; margin-bottom: 12px; }
-    h1 em { color: #F5A623; font-style: normal; }
-    .sous { font-size: 16px; color: #5A6B85; margin-bottom: 24px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #FAF8F3; color: #14302A; line-height: 1.6; }
+    header { background: #FAF8F3; padding: 16px 22px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #EFE9DD; position: sticky; top: 0; z-index: 10; }
+    .logo { font-weight: 900; font-size: 19px; letter-spacing: -.3px; color: #0E5A4A; }
+    .logo span { background: #0E5A4A; color: #FAF8F3; border-radius: 7px; padding: 2px 7px; margin-left: 3px; }
+    nav a { text-decoration: none; font-size: 13px; font-weight: 800; background: #0E5A4A; color: #fff; padding: 9px 16px; border-radius: 30px; }
+    .hero { text-align: center; padding: 52px 20px 28px; max-width: 700px; margin: 0 auto; }
+    .badge { background: #E9F3EF; color: #0E5A4A; font-size: 13px; font-weight: 800; border-radius: 30px; padding: 7px 16px; display: inline-block; margin-bottom: 16px; }
+    h1 { font-size: 36px; line-height: 1.2; margin-bottom: 14px; letter-spacing: -.5px; }
+    h1 em { color: #0E5A4A; font-style: normal; border-bottom: 5px solid #E8A33D; }
+    .sous { font-size: 16px; color: #5C6E68; margin-bottom: 26px; }
     .tool { max-width: 640px; margin: 0 auto 50px; padding: 0 20px; }
-    .card { background: #fff; border: 1px solid #E2E8F0; border-radius: 18px; padding: 26px; box-shadow: 0 8px 30px rgba(27,42,74,0.08); }
+    .card { background: #fff; border: 1px solid #EFE9DD; border-radius: 22px; padding: 28px; box-shadow: 0 10px 36px rgba(14,90,74,.08); }
     .steps { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
-    .step { background: #F0F4FA; border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 700; color: #4A5B75; }
-    .step.active { background: #1B2A4A; color: #fff; }
-    video, canvas { width: 100%; max-width: 340px; border-radius: 14px; background: #000; display: block; margin: 0 auto; }
-    .btn { display: inline-block; background: #F5A623; color: #1B2A4A; font-size: 16px; font-weight: 800; border: none; border-radius: 12px; padding: 14px 26px; cursor: pointer; margin: 8px 4px; }
-    .btn.ghost { background: #E8EDF4; color: #1B2A4A; }
+    .step { background: #F1EFE8; border-radius: 30px; padding: 7px 16px; font-size: 12px; font-weight: 800; color: #6B7A74; }
+    .step.active { background: #0E5A4A; color: #fff; }
+    video, canvas { width: 100%; max-width: 340px; border-radius: 16px; background: #000; display: block; margin: 0 auto; }
+    .btn { display: inline-block; background: #E8A33D; color: #14302A; font-size: 16px; font-weight: 900; border: none; border-radius: 14px; padding: 15px 28px; cursor: pointer; margin: 8px 4px; box-shadow: 0 4px 14px rgba(232,163,61,.35); }
+    .btn.ghost { background: #EFF0EA; color: #14302A; box-shadow: none; }
     .btn:disabled { opacity: .5; cursor: wait; }
     .result { text-align: center; display: none; }
-    .planche { width: 100%; max-width: 320px; border-radius: 10px; border: 1px solid #ddd; margin: 10px auto; display: block; background: #fff; }
-    .msg { padding: 12px; border-radius: 10px; margin: 10px 0; font-size: 14px; display: none; }
-    .msg.ok { background: #E8F7EE; color: #1E7A46; }
-    .msg.err { background: #FDEBEC; color: #B91C1C; }
-    .check { font-size: 13px; color: #5A6B85; margin: 6px 0; }
-    .check.ok { color: #1E7A46; }
-    .check.bad { color: #B91C1C; }
-    .garantie { background: #FFF8ED; border: 1px solid #F5A623; border-radius: 12px; padding: 14px 16px; font-size: 13px; margin-top: 14px; color: #7A5B1E; }
-    footer { padding: 22px; text-align: center; font-size: 12px; color: #8A96A8; }
-    footer a { color: #8A96A8; margin: 0 8px; }
-    @media (max-width: 640px) { h1 { font-size: 26px; } .card { padding: 18px; } }
+    .planche { width: 100%; max-width: 320px; border-radius: 12px; border: 1px solid #ddd; margin: 10px auto; display: block; background: #fff; }
+    .msg { padding: 12px; border-radius: 12px; margin: 10px 0; font-size: 14px; display: none; }
+    .msg.ok { background: #E9F3EF; color: #0E5A4A; }
+    .msg.err { background: #FDEBEC; color: #B3261E; }
+    .check { font-size: 13px; color: #5C6E68; margin: 6px 0; }
+    .check.ok { color: #0E5A4A; font-weight: 600; }
+    .check.bad { color: #B3261E; font-weight: 600; }
+    .garantie { background: #FDF6EA; border: 1px solid #E8A33D; border-radius: 14px; padding: 14px 16px; font-size: 13px; margin-top: 14px; color: #7A5B1E; }
+    footer { padding: 26px; text-align: center; font-size: 12px; color: #8B9A94; border-top: 1px solid #EFE9DD; }
+    footer a { color: #8B9A94; margin: 0 8px; }
+    @media (max-width: 640px) { h1 { font-size: 29px; } .card { padding: 20px; } }
   </style>
 </head>
 <body>
   <header>
-    <div class="logo">ID<span>Valide</span></div>
+    <div class="logo">IDValide<span>🪪</span></div>
     <nav><a href="/blog/">📚 Blog</a></nav>
   </header>
 
   <section class="hero">
     <div class="badge">🇫🇷 Conforme aux normes ANTS</div>
-    <h1>Votre photo d'identité <em>conforme</em>, depuis votre téléphone</h1>
+    <h1>Votre photo d'identité <em>acceptée</em>, du premier coup</h1>
     <p class="sous">Carte d'identité, passeport, permis : prenez un selfie, on vérifie la conformité, téléchargez votre photo officielle 35×45. <b>100 % dans votre navigateur</b> — votre photo ne quitte jamais votre téléphone.</p>
   </section>
 
@@ -87,27 +87,27 @@
         <div class="msg ok" id="msgOK">✅ Photo conforme ! Téléchargez votre planche 35×45 (4 photos) :</div>
         <button class="btn" id="btnDownload">⬇️ Télécharger ma planche (gratuit)</button>
         <div id="premiumBlock">
-          <button class="btn" id="btnPremium" style="background:#1B2A4A;color:#fff">💎 Version premium — 2,99 €</button>
-          <div style="font-size:12px;color:#8A96A8;margin-top:6px">1 paiement, sans abonnement</div>
+          <button class="btn" id="btnPremium" style="background:#0E5A4A;color:#fff;box-shadow:0 4px 14px rgba(14,90,74,.3)">💎 Version premium — 2,99 €</button>
+          <div style="font-size:12px;color:#8B9A94;margin-top:6px">1 paiement, sans abonnement</div>
         </div>
         <div class="garantie">🛡️ <b>Garantie ANTS</b> : si votre photo est refusée, elle vous est remboursée. Votre photo reste sur votre appareil — aucun envoi serveur.</div>
         <button class="btn ghost" id="btnRetry2">🔄 Nouvelle photo</button>
       </div>
 
       <!-- Modal premium -->
-      <div id="modalPremium" style="display:none;position:fixed;inset:0;background:rgba(27,42,74,.6);z-index:50;align-items:center;justify-content:center;padding:20px">
-        <div style="background:#fff;border-radius:18px;padding:26px;max-width:400px;width:100%;text-align:center">
+      <div id="modalPremium" style="display:none;position:fixed;inset:0;background:rgba(14,90,74,.55);z-index:50;align-items:center;justify-content:center;padding:20px">
+        <div style="background:#fff;border-radius:22px;padding:28px;max-width:400px;width:100%;text-align:center">
           <div style="font-size:34px">💎</div>
-          <h3 style="margin:8px 0;font-size:20px">Version premium IDValide</h3>
-          <div style="text-align:left;font-size:14px;color:#3D4E66;margin:14px 0">
+          <h3 style="margin:8px 0;font-size:21px;color:#14302A">Version premium IDValide</h3>
+          <div style="text-align:left;font-size:14px;color:#5C6E68;margin:14px 0">
             <div style="padding:4px 0">✅ <b>Haute résolution</b> (600 dpi, impression nette)</div>
             <div style="padding:4px 0">✅ <b>Photo garantie conforme</b> — remboursée si refusée</div>
             <div style="padding:4px 0">✅ <b>Envoi par email</b> + planche imprimable</div>
             <div style="padding:4px 0">✅ <b>Sans pub</b></div>
           </div>
           <button class="btn" id="btnPayer" style="width:100%">Payer 2,99 €</button>
-          <div style="font-size:12px;color:#8A96A8;margin-top:10px">Paiement sécurisé · TVA incluse · Sans abonnement</div>
-          <div style="font-size:12px;color:#8A96A8;margin-top:4px">Refusée par l'ANTS ? <b>Remboursée intégralement</b>.</div>
+          <div style="font-size:12px;color:#8B9A94;margin-top:10px">Paiement sécurisé · TVA incluse · Sans abonnement</div>
+          <div style="font-size:12px;color:#8B9A94;margin-top:4px">Refusée par l'ANTS ? <b>Remboursée intégralement</b>.</div>
           <button class="btn ghost" id="btnFermer" style="margin-top:10px;width:100%">Retour à la version gratuite</button>
         </div>
       </div>
@@ -157,7 +157,7 @@
             modal.style.display = 'none';
             genererPlanche(true);
             document.getElementById('msgOK').textContent = '💎 Premium actif ! Votre planche haute résolution (600 dpi) :';
-            document.getElementById('premiumBlock').innerHTML = '<div style="background:#E8F7EE;color:#1E7A46;border-radius:10px;padding:12px;margin:10px 0;font-weight:700">✅ Premium débloqué — merci !</div>';
+            document.getElementById('premiumBlock').innerHTML = '<div style="background:#E9F3EF;color:#0E5A4A;border-radius:10px;padding:12px;margin:10px 0;font-weight:700">✅ Premium débloqué — merci !</div>';
           }
         },
       });
@@ -251,13 +251,11 @@
         const W = canvas.width, H = canvas.height;
         const faceW = bb.width / W, faceH = bb.height / H;
         const cx = (bb.originX + bb.width / 2) / W, cy = (bb.originY + bb.height / 2) / H;
-        // ANTS : visage centré, ~70-80 % de la hauteur du cadre
-        checks.push([`✅ Visage détecté (${Math.round(faceW * 100)} % de largeur)`, true]);
         const centrage = Math.abs(cx - 0.5) < 0.12 && Math.abs(cy - 0.42) < 0.12;
+        checks.push([`✅ Visage détecté (${Math.round(faceW * 100)} % de largeur)`, true]);
         checks.push([centrage ? '✅ Visage bien centré' : '❌ Visage décentré — regardez la caméra, visage au centre', centrage]);
         const taille = faceH > 0.45;
         checks.push([taille ? '✅ Visage assez grand' : '❌ Visage trop petit — rapprochez-vous de la caméra', taille]);
-        // fond : vérifier les bords (clair et uni)
         const ctx = canvas.getContext('2d');
         const sample = ctx.getImageData(Math.round(W * 0.05), Math.round(H * 0.1), Math.round(W * 0.9), Math.round(H * 0.05)).data;
         let lum = 0; for (let i = 0; i < sample.length; i += 4) lum += (sample[i] + sample[i + 1] + sample[i + 2]) / 3;
