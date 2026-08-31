@@ -141,6 +141,13 @@
   <script src="vendor/vision_bundle.js"></script>
   <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
   <script>
+    // ─── Stats (compteur maison — ne bloque JAMAIS l'utilisateur) ───
+    const STATS_URL = 'https://stats.idvalide.fr/hit';
+    function hit(type) {
+      try { fetch(STATS_URL + '?type=' + type, { method: 'POST', mode: 'no-cors' }); } catch (e) {}
+    }
+    hit('visit');
+
     // ─── Paiement Paddle (checkout overlay) — ne doit JAMAIS bloquer l'outil ───
     let paddleDispo = false;
     try {
@@ -178,6 +185,7 @@
         items: [{ priceId: 'pri_01m1c491gprh97sad2zw0v9tm8', quantity: 1 }],
         eventCallback: (e) => {
           if (e.name === 'checkout.completed') {
+            hit('premium');
             try { localStorage.setItem('idvalide_premium', '1'); } catch (err) {}
             premiumOk = true;
             modal.style.display = 'none';
@@ -346,6 +354,7 @@
     // ─── Génération planche 35×45 (4 photos) ───
     document.getElementById('btnValider').onclick = () => {
       genererPlanche(false);
+      hit('generate');
       setEtape(3);
       msgG.style.display = 'none';
       document.getElementById('msgOK').style.display = 'block';
