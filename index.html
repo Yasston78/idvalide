@@ -49,7 +49,7 @@
   <section class="hero">
     <div class="badge">🇫🇷 Conforme aux normes ANTS</div>
     <h1>Votre photo d'identité <em>acceptée</em>, du premier coup</h1>
-    <p class="sous">Carte d'identité, passeport, permis : prenez un selfie, on vérifie la conformité, téléchargez votre photo officielle 35×45. <b>100 % dans votre navigateur</b> — votre photo ne quitte jamais votre téléphone.</p>
+    <p class="sous">Carte d'identité, passeport, permis : prenez un selfie, on vérifie la conformité <b>gratuitement</b>. Téléchargez votre photo officielle 35×45 pour <b>2,99 €</b> — <b>remboursée si refusée</b>. <b>100 % dans votre navigateur</b> — votre photo ne quitte jamais votre téléphone.</p>
   </section>
 
   <!-- 📢 EMPLACEMENT PUB A (bannière entre hero et outil)
@@ -84,31 +84,29 @@
 
       <div class="result" id="etapeResult">
         <canvas id="planche" class="planche"></canvas>
-        <div class="msg ok" id="msgOK">✅ Photo conforme ! Téléchargez votre planche 35×45 (4 photos) :</div>
-        <button class="btn" id="btnDownload">⬇️ Télécharger ma planche (gratuit)</button>
+        <div class="msg ok" id="msgOK">✅ Photo conforme ! Votre planche 35×45 est prête :</div>
+        <button class="btn" id="btnDownload" style="background:#0E5A4A;color:#fff;box-shadow:0 4px 14px rgba(14,90,74,.3)">⬇️ Télécharger ma photo — 2,99 €</button>
         <div id="premiumBlock">
-          <button class="btn" id="btnPremium" style="background:#0E5A4A;color:#fff;box-shadow:0 4px 14px rgba(14,90,74,.3)">💎 Version premium — 2,99 €</button>
-          <div style="font-size:12px;color:#8B9A94;margin-top:6px">1 paiement, sans abonnement</div>
+          <div style="font-size:12px;color:#8B9A94;margin-top:6px">Paiement unique · sans abonnement · <b>remboursée si refusée par l'ANTS</b></div>
         </div>
-        <div class="garantie">🛡️ <b>Garantie ANTS</b> : si votre photo est refusée, elle vous est remboursée. Votre photo reste sur votre appareil — aucun envoi serveur.</div>
+        <div class="garantie">🛡️ <b>Garantie ANTS</b> : si votre photo est refusée, elle vous est remboursée intégralement. Votre photo reste sur votre appareil — aucun envoi serveur.</div>
         <button class="btn ghost" id="btnRetry2">🔄 Nouvelle photo</button>
       </div>
 
       <!-- Modal premium -->
       <div id="modalPremium" style="display:none;position:fixed;inset:0;background:rgba(14,90,74,.55);z-index:50;align-items:center;justify-content:center;padding:20px">
         <div style="background:#fff;border-radius:22px;padding:28px;max-width:400px;width:100%;text-align:center">
-          <div style="font-size:34px">💎</div>
-          <h3 style="margin:8px 0;font-size:21px;color:#14302A">Version premium IDValide</h3>
+          <div style="font-size:34px">🪪</div>
+          <h3 style="margin:8px 0;font-size:21px;color:#14302A">Votre photo officielle est prête !</h3>
           <div style="text-align:left;font-size:14px;color:#5C6E68;margin:14px 0">
-            <div style="padding:4px 0">✅ <b>Haute résolution</b> (600 dpi, impression nette)</div>
+            <div style="padding:4px 0">✅ <b>Planche 35×45 haute résolution</b> (600 dpi, impression nette)</div>
             <div style="padding:4px 0">✅ <b>Photo garantie conforme</b> — remboursée si refusée</div>
-            <div style="padding:4px 0">✅ <b>Envoi par email</b> + planche imprimable</div>
             <div style="padding:4px 0">✅ <b>Sans pub</b></div>
           </div>
-          <button class="btn" id="btnPayer" style="width:100%">Payer 2,99 €</button>
+          <button class="btn" id="btnPayer" style="width:100%">Payer 2,99 € et télécharger</button>
           <div style="font-size:12px;color:#8B9A94;margin-top:10px">Paiement sécurisé · TVA incluse · Sans abonnement</div>
           <div style="font-size:12px;color:#8B9A94;margin-top:4px">Refusée par l'ANTS ? <b>Remboursée intégralement</b>.</div>
-          <button class="btn ghost" id="btnFermer" style="margin-top:10px;width:100%">Retour à la version gratuite</button>
+          <button class="btn ghost" id="btnFermer" style="margin-top:10px;width:100%">Annuler</button>
         </div>
       </div>
     </div>
@@ -155,7 +153,7 @@
 
     document.getElementById('btnPayer').onclick = () => {
       if (!paddleDispo || typeof Paddle === 'undefined' || !Paddle.Checkout) {
-        alert('Le paiement est momentanément indisponible (réseau). Réessayez dans un instant — la version gratuite reste utilisable 😉');
+        alert('Le paiement est momentanément indisponible (réseau). Réessayez dans un instant 😉');
         return;
       }
       Paddle.Checkout.open({
@@ -166,8 +164,9 @@
             premiumOk = true;
             modal.style.display = 'none';
             genererPlanche(true);
-            document.getElementById('msgOK').textContent = '💎 Premium actif ! Votre planche haute résolution (600 dpi) :';
-            document.getElementById('premiumBlock').innerHTML = '<div style="background:#E9F3EF;color:#0E5A4A;border-radius:10px;padding:12px;margin:10px 0;font-weight:700">✅ Premium débloqué — merci !</div>';
+            document.getElementById('msgOK').textContent = '💎 Merci ! Votre planche haute résolution (600 dpi) :';
+            document.getElementById('premiumBlock').innerHTML = '<div style="background:#E9F3EF;color:#0E5A4A;border-radius:10px;padding:12px;margin:10px 0;font-weight:700">✅ Téléchargement débloqué — merci !</div>';
+            telechargerPlanche();
           }
         },
       });
@@ -328,16 +327,24 @@
       document.getElementById('msgOK').style.display = 'block';
     };
 
-    document.getElementById('btnDownload').onclick = () => {
+    function telechargerPlanche() {
       const a = document.createElement('a');
       a.href = document.getElementById('planche').toDataURL('image/png');
       a.download = 'photo-identite-ANTS-35x45.png';
       a.click();
+    }
+
+    document.getElementById('btnDownload').onclick = () => {
+      if (premiumOk) {
+        genererPlanche(true);
+        telechargerPlanche();
+      } else {
+        modal.style.display = 'flex';
+      }
     };
 
     // ─── Premium ───
     const modal = document.getElementById('modalPremium');
-    document.getElementById('btnPremium').onclick = () => { modal.style.display = 'flex'; };
     document.getElementById('btnFermer').onclick = () => { modal.style.display = 'none'; };
     modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
   </script>
