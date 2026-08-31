@@ -81,9 +81,31 @@
       <div class="result" id="etapeResult">
         <canvas id="planche" class="planche"></canvas>
         <div class="msg ok" id="msgOK">✅ Photo conforme ! Téléchargez votre planche 35×45 (4 photos) :</div>
-        <button class="btn" id="btnDownload">⬇️ Télécharger ma planche</button>
+        <button class="btn" id="btnDownload">⬇️ Télécharger ma planche (gratuit)</button>
+        <div id="premiumBlock">
+          <button class="btn" id="btnPremium" style="background:#1B2A4A;color:#fff">💎 Version premium — 2,99 €</button>
+          <div style="font-size:12px;color:#8A96A8;margin-top:6px">1 paiement, sans abonnement</div>
+        </div>
         <div class="garantie">🛡️ <b>Garantie ANTS</b> : si votre photo est refusée, elle vous est remboursée. Votre photo reste sur votre appareil — aucun envoi serveur.</div>
         <button class="btn ghost" id="btnRetry2">🔄 Nouvelle photo</button>
+      </div>
+
+      <!-- Modal premium -->
+      <div id="modalPremium" style="display:none;position:fixed;inset:0;background:rgba(27,42,74,.6);z-index:50;align-items:center;justify-content:center;padding:20px">
+        <div style="background:#fff;border-radius:18px;padding:26px;max-width:400px;width:100%;text-align:center">
+          <div style="font-size:34px">💎</div>
+          <h3 style="margin:8px 0;font-size:20px">Version premium IDValide</h3>
+          <div style="text-align:left;font-size:14px;color:#3D4E66;margin:14px 0">
+            <div style="padding:4px 0">✅ <b>Haute résolution</b> (600 dpi, impression nette)</div>
+            <div style="padding:4px 0">✅ <b>Photo garantie conforme</b> — remboursée si refusée</div>
+            <div style="padding:4px 0">✅ <b>Envoi par email</b> + planche imprimable</div>
+            <div style="padding:4px 0">✅ <b>Sans pub</b></div>
+          </div>
+          <button class="btn" id="btnPayer" style="width:100%">Payer 2,99 €</button>
+          <div style="font-size:12px;color:#8A96A8;margin-top:10px">Paiement sécurisé · TVA incluse · Sans abonnement</div>
+          <div style="font-size:12px;color:#8A96A8;margin-top:4px">Refusée par l'ANTS ? <b>Remboursée intégralement</b>.</div>
+          <button class="btn ghost" id="btnFermer" style="margin-top:10px;width:100%">Retour à la version gratuite</button>
+        </div>
       </div>
     </div>
   </section>
@@ -236,6 +258,16 @@
       a.href = document.getElementById('planche').toDataURL('image/png');
       a.download = 'photo-identite-ANTS-35x45.png';
       a.click();
+    };
+
+    // ─── Premium (à brancher sur Paddle/LemonSqueezy — token à venir) ───
+    const modal = document.getElementById('modalPremium');
+    document.getElementById('btnPremium').onclick = () => { modal.style.display = 'flex'; };
+    document.getElementById('btnFermer').onclick = () => { modal.style.display = 'none'; };
+    modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+    document.getElementById('btnPayer').onclick = () => {
+      // TODO: ouvrir le checkout Paddle/LemonSqueezy quand le token sera configuré
+      alert('⏳ Le paiement se branche dès la création du compte (2 min). Revenez bientôt — la version gratuite reste disponible 😉');
     };
   </script>
 </body>
