@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://idvalide.fr/</loc><priority>1.0</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://idvalide.fr/blog/</loc><priority>0.9</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://idvalide.fr/blog/2026-09-01-photo-identite-refusee-ants.html</loc><priority>0.8</priority></url>
+  <url><loc>https://idvalide.fr/blog/2026-09-01-photo-identite-conforme-maison.html</loc><priority>0.8</priority></url>
+  <url><loc>https://idvalide.fr/blog/2026-09-01-photo-permis-de-conduire.html</loc><priority>0.8</priority></url>
+  <url><loc>https://idvalide.fr/politique-confidentialite.html</loc><priority>0.2</priority></url>
+  <url><loc>https://idvalide.fr/cgu.html</loc><priority>0.2</priority></url>
+</urlset>
