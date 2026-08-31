@@ -108,7 +108,8 @@
           <button class="btn ghost" id="btnUpload">🖼️ Choisir une photo</button>
           <input type="file" id="fileInput" accept="image/*" hidden>
         </div>
-        <div class="check" style="text-align:center">💡 Tiens le téléphone <b>à hauteur des yeux</b> · visage dans l'ovale · regarde l'objectif</div>
+        <div id="liveGuide" style="display:none;text-align:center;background:rgba(14,90,74,.9);color:#fff;font-size:13px;font-weight:700;border-radius:20px;padding:8px 14px;margin:10px auto 0;max-width:340px">…</div>
+        <div class="check" style="text-align:center">💡 Tiens le téléphone <b>à hauteur des yeux</b> · visage dans l'ovale</div>
       </div>
 
       <div id="etapeVerif" style="display:none;text-align:center">
@@ -352,6 +353,7 @@
         video.srcObject = stream;
         await video.play();
         document.getElementById('guide').style.display = 'block';
+        demarrerGuideLive();
       } catch (e) {
         const btnU = document.getElementById('btnUpload');
         btnU.style.background = '#E8A33D';
@@ -361,7 +363,45 @@
     }
     startCamera();
 
-    function stopCamera() { if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } }
+    function stopCamera() { if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } arreterGuideLive(); }
+
+    // ─── Guide en direct : conseils temps réel pendant la caméra ───
+    let guideTimer = null;
+    function demarrerGuideLive() {
+      const el = document.getElementById('liveGuide');
+      el.style.display = 'block';
+      if (guideTimer) return;
+      guideTimer = setInterval(async () => {
+        try {
+          if (!video || video.readyState < 2) return;
+          if (!faceDetector) await initDetector();
+          if (!faceDetector) { el.textContent = 'Préparation…'; return; }
+          const tmp = document.createElement('canvas');
+          tmp.width = video.videoWidth; tmp.height = video.videoHeight;
+          tmp.getContext('2d').drawImage(video, 0, 0);
+          const det = faceDetector.detect(tmp);
+          if (!det.detections || !det.detections.length) {
+            el.textContent = 'Visage non détecté — recule un peu le téléphone';
+            el.style.background = 'rgba(179,38,30,.9)';
+            return;
+          }
+          const bb = det.detections[0].boundingBox;
+          const cy = (bb.originY + bb.height / 2) / tmp.height;
+          const faceW = bb.width / tmp.width;
+          let txt, color;
+          if (cy > 0.55) { txt = '⬆️ Téléphone trop bas — remonte-le à hauteur des yeux'; color = 'rgba(179,38,30,.9)'; }
+          else if (faceW > 0.80) { txt = '↔️ Recule un peu le téléphone'; color = 'rgba(179,38,30,.9)'; }
+          else if (faceW < 0.30) { txt = '↔️ Approche un peu le téléphone'; color = 'rgba(232,163,61,.95)'; }
+          else { txt = '✅ Parfait ! Prends la photo'; color = 'rgba(14,90,74,.95)'; }
+          el.textContent = txt; el.style.background = color;
+        } catch (e) {}
+      }, 600);
+    }
+    function arreterGuideLive() {
+      if (guideTimer) { clearInterval(guideTimer); guideTimer = null; }
+      const el = document.getElementById('liveGuide');
+      if (el) el.style.display = 'none';
+    }
 
     document.getElementById('btnSelfie').onclick = async () => {
       if (!video || video.readyState < 2) return alert('Caméra pas prête — utilisez "Choisir une photo"');
