@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IDValide — Photo d'identité conforme ANTS en ligne</title>
+  <meta name="description" content="Prenez une photo d'identité conforme aux normes ANTS depuis votre téléphone : carte d'identité, passeport, permis. Gratuit, vérifiée, garantie.">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #F5F7FA; color: #1B2A4A; line-height: 1.6; }
+    header { background: #1B2A4A; padding: 14px 20px; color: #fff; display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-weight: 800; font-size: 17px; }
+    .logo span { color: #F5A623; }
+    nav a { color: #fff; text-decoration: none; font-size: 13px; font-weight: 600; background: #F5A623; color: #1B2A4A; padding: 7px 14px; border-radius: 8px; }
+    .hero { text-align: center; padding: 44px 20px 24px; max-width: 680px; margin: 0 auto; }
+    .badge { background: #FFF3E0; color: #B7791F; font-size: 13px; font-weight: 700; border-radius: 20px; padding: 6px 14px; display: inline-block; margin-bottom: 14px; }
+    h1 { font-size: 32px; line-height: 1.25; margin-bottom: 12px; }
+    h1 em { color: #F5A623; font-style: normal; }
+    .sous { font-size: 16px; color: #5A6B85; margin-bottom: 24px; }
+    .tool { max-width: 640px; margin: 0 auto 50px; padding: 0 20px; }
+    .card { background: #fff; border: 1px solid #E2E8F0; border-radius: 18px; padding: 26px; box-shadow: 0 8px 30px rgba(27,42,74,0.08); }
+    .steps { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
+    .step { background: #F0F4FA; border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 700; color: #4A5B75; }
+    .step.active { background: #1B2A4A; color: #fff; }
+    video, canvas { width: 100%; max-width: 340px; border-radius: 14px; background: #000; display: block; margin: 0 auto; }
+    .btn { display: inline-block; background: #F5A623; color: #1B2A4A; font-size: 16px; font-weight: 800; border: none; border-radius: 12px; padding: 14px 26px; cursor: pointer; margin: 8px 4px; }
+    .btn.ghost { background: #E8EDF4; color: #1B2A4A; }
+    .btn:disabled { opacity: .5; cursor: wait; }
+    .result { text-align: center; display: none; }
+    .planche { width: 100%; max-width: 320px; border-radius: 10px; border: 1px solid #ddd; margin: 10px auto; display: block; background: #fff; }
+    .msg { padding: 12px; border-radius: 10px; margin: 10px 0; font-size: 14px; display: none; }
+    .msg.ok { background: #E8F7EE; color: #1E7A46; }
+    .msg.err { background: #FDEBEC; color: #B91C1C; }
+    .check { font-size: 13px; color: #5A6B85; margin: 6px 0; }
+    .check.ok { color: #1E7A46; }
+    .check.bad { color: #B91C1C; }
+    .garantie { background: #FFF8ED; border: 1px solid #F5A623; border-radius: 12px; padding: 14px 16px; font-size: 13px; margin-top: 14px; color: #7A5B1E; }
+    footer { padding: 22px; text-align: center; font-size: 12px; color: #8A96A8; }
+    footer a { color: #8A96A8; margin: 0 8px; }
+    @media (max-width: 640px) { h1 { font-size: 26px; } .card { padding: 18px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">ID<span>Valide</span></div>
+    <nav><a href="/blog/">📚 Blog</a></nav>
+  </header>
+
+  <section class="hero">
+    <div class="badge">🇫🇷 Conforme aux normes ANTS</div>
+    <h1>Votre photo d'identité <em>conforme</em>, depuis votre téléphone</h1>
+    <p class="sous">Carte d'identité, passeport, permis : prenez un selfie, on vérifie la conformité, téléchargez votre photo officielle 35×45. <b>100 % dans votre navigateur</b> — votre photo ne quitte jamais votre téléphone.</p>
+  </section>
+
+  <section class="tool">
+    <div class="card">
+      <div class="steps">
+        <span class="step active" id="s1">1. Photo</span>
+        <span class="step" id="s2">2. Vérification</span>
+        <span class="step" id="s3">3. Téléchargement</span>
+      </div>
+
+      <div id="etapePhoto">
+        <video id="video" autoplay playsinline muted></video>
+        <div style="text-align:center;margin-top:12px">
+          <button class="btn" id="btnSelfie">📸 Prendre un selfie</button>
+          <button class="btn ghost" id="btnUpload">🖼️ Choisir une photo</button>
+          <input type="file" id="fileInput" accept="image/*" hidden>
+        </div>
+        <div class="check" style="text-align:center">💡 Fond clair uni, visage bien éclairé, regard face à l'objectif</div>
+      </div>
+
+      <div id="etapeVerif" style="display:none;text-align:center">
+        <canvas id="canvas"></canvas>
+        <div class="msg" id="msgGlobal"></div>
+        <div id="checks" style="text-align:left;margin:12px auto;max-width:340px"></div>
+        <button class="btn" id="btnValider" style="display:none">✅ Générer ma photo officielle</button>
+        <button class="btn ghost" id="btnRetry">🔄 Reprendre une photo</button>
+      </div>
+
+      <div class="result" id="etapeResult">
+        <canvas id="planche" class="planche"></canvas>
+        <div class="msg ok" id="msgOK">✅ Photo conforme ! Téléchargez votre planche 35×45 (4 photos) :</div>
+        <button class="btn" id="btnDownload">⬇️ Télécharger ma planche</button>
+        <div class="garantie">🛡️ <b>Garantie ANTS</b> : si votre photo est refusée, elle vous est remboursée. Votre photo reste sur votre appareil — aucun envoi serveur.</div>
+        <button class="btn ghost" id="btnRetry2">🔄 Nouvelle photo</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <a href="/">Accueil</a><a href="/blog/">Blog</a><a href="/politique-confidentialite.html">Confidentialité</a><a href="/cgu.html">CGU</a>
+    <p style="margin-top:8px">© 2026 IDValide — idvalide.fr</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/vision_bundle.js"></script>
+  <script>
+    // ─── État ───
+    let video, canvas, faceDetector = null;
+    let photoData = null; // ImageData courant
+    const checksEl = document.getElementById('checks');
+    const msgG = document.getElementById('msgGlobal');
+
+    function setEtape(n) {
+      document.getElementById('s1').classList.toggle('active', n === 1);
+      document.getElementById('s2').classList.toggle('active', n === 2);
+      document.getElementById('s3').classList.toggle('active', n === 3);
+      document.getElementById('etapePhoto').style.display = n === 1 ? '' : 'none';
+      document.getElementById('etapeVerif').style.display = n === 2 ? '' : 'none';
+      document.getElementById('etapeResult').style.display = n === 3 ? 'block' : 'none';
+    }
+
+    // ─── Détecteur de visage MediaPipe ───
+    async function initDetector() {
+      if (faceDetector) return;
+      const vision = await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm');
+      faceDetector = await FaceDetector.createFromOptions(vision, {
+        baseOptions: { modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite', delegate: 'GPU' },
+        runningMode: 'IMAGE', minDetectionConfidence: 0.5,
+      });
+    }
+
+    // ─── Caméra ───
+    let stream = null;
+    async function startCamera() {
+      video = document.getElementById('video');
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 1280, height: 720 }, audio: false });
+        video.srcObject = stream;
+        await video.play();
+      } catch (e) { alert('Caméra indisponible — utilisez "Choisir une photo" à la place 😉'); }
+    }
+    startCamera();
+
+    function stopCamera() { if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } }
+
+    document.getElementById('btnSelfie').onclick = async () => {
+      if (!video || video.readyState < 2) return alert('Caméra pas prête — utilisez "Choisir une photo"');
+      const w = video.videoWidth, h = video.videoHeight;
+      canvas = document.getElementById('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(video, 0, 0, w, h);
+      photoData = canvas.getContext('2d').getImageData(0, 0, w, h);
+      stopCamera();
+      await verifier();
+    };
+
+    document.getElementById('btnUpload').onclick = () => document.getElementById('fileInput').click();
+    document.getElementById('fileInput').onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const img = new Image();
+      img.onload = async () => {
+        canvas = document.getElementById('canvas');
+        const maxW = 1280;
+        const scale = Math.min(1, maxW / img.width);
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        photoData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+        await verifier();
+      };
+      img.src = URL.createObjectURL(file);
+    };
+
+    // ─── Vérification conformité ───
+    function msg(text, ok) {
+      msgG.textContent = text;
+      msgG.className = 'msg ' + (ok ? 'ok' : 'err');
+      msgG.style.display = 'block';
+    }
+
+    async function verifier() {
+      await initDetector();
+      setEtape(2);
+      msg('🔍 Vérification de votre photo…', true);
+      const det = faceDetector.detect(canvas);
+      checksEl.innerHTML = '';
+      const checks = [];
+      if (!det.detections || det.detections.length === 0) {
+        checks.push(['❌ Visage non détecté — éclairez votre visage et regardez la caméra', false]);
+      } else {
+        const bb = det.detections[0].boundingBox;
+        const W = canvas.width, H = canvas.height;
+        const faceW = bb.width / W, faceH = bb.height / H;
+        const cx = (bb.originX + bb.width / 2) / W, cy = (bb.originY + bb.height / 2) / H;
+        // ANTS : visage centré, ~70-80 % de la hauteur du cadre
+        checks.push([`✅ Visage détecté (${Math.round(faceW * 100)} % de largeur)`, true]);
+        const centrage = Math.abs(cx - 0.5) < 0.12 && Math.abs(cy - 0.42) < 0.12;
+        checks.push([centrage ? '✅ Visage bien centré' : '❌ Visage décentré — regardez la caméra, visage au centre', centrage]);
+        const taille = faceH > 0.45;
+        checks.push([taille ? '✅ Visage assez grand' : '❌ Visage trop petit — rapprochez-vous de la caméra', taille]);
+        // fond : vérifier les bords (clair et uni)
+        const ctx = canvas.getContext('2d');
+        const sample = ctx.getImageData(Math.round(W * 0.05), Math.round(H * 0.1), Math.round(W * 0.9), Math.round(H * 0.05)).data;
+        let lum = 0; for (let i = 0; i < sample.length; i += 4) lum += (sample[i] + sample[i + 1] + sample[i + 2]) / 3;
+        lum /= sample.length / 4;
+        const fondClair = lum > 180;
+        checks.push([fondClair ? '✅ Fond clair et uni' : '❌ Fond trop sombre — placez-vous devant un mur clair', fondClair]);
+      }
+      checks.forEach(([t, ok]) => {
+        const d = document.createElement('div');
+        d.className = 'check ' + (ok ? 'ok' : 'bad');
+        d.textContent = t;
+        checksEl.appendChild(d);
+      });
+      const ok = checks.every(c => c[1]);
+      document.getElementById('btnValider').style.display = ok ? '' : 'none';
+      msg(ok ? '🎉 Votre photo est conforme !' : 'Quelques ajustements nécessaires — corrigez puis réessayez 😉', ok);
+    }
+
+    document.getElementById('btnRetry').onclick = () => { setEtape(1); startCamera(); };
+    document.getElementById('btnRetry2').onclick = () => { setEtape(1); startCamera(); };
+
+    // ─── Génération planche 35×45 (4 photos) ───
+    document.getElementById('btnValider').onclick = () => {
+      const planche = document.getElementById('planche');
+      planche.width = 1024; planche.height = 1446; // ratio 4 photos 35x45 (2x2) + marges
+      const ctx = planche.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, planche.width, planche.height);
+      const pw = 460, ph = 590, m = 34;
+      const src = canvas;
+      for (let i = 0; i < 4; i++) {
+        const x = m + (i % 2) * (pw + m);
+        const y = m + Math.floor(i / 2) * (ph + m);
+        ctx.drawImage(src, 0, 0, src.width, src.height, x, y, pw, ph);
+      }
+      // fond blanc officiel (on remplit le rectangle du visage en blanc autour)
+      setEtape(3);
+      msgG.style.display = 'none';
+      document.getElementById('msgOK').style.display = 'block';
+    };
+
+    document.getElementById('btnDownload').onclick = () => {
+      const a = document.createElement('a');
+      a.href = document.getElementById('planche').toDataURL('image/png');
+      a.download = 'photo-identite-ANTS-35x45.png';
+      a.click();
+    };
+  </script>
+</body>
+</html>
