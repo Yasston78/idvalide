@@ -123,7 +123,45 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/vision_bundle.js"></script>
+  <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
   <script>
+    // ─── Paiement Paddle (checkout overlay) ───
+    Paddle.Setup({ token: 'live_7643b30290221751f09a5fe2df4', environment: 'production' });
+    let premiumOk = false;
+    try { premiumOk = localStorage.getItem('idvalide_premium') === '1'; } catch (e) {}
+
+    function genererPlanche(res) {
+      const planche = document.getElementById('planche');
+      planche.width = res ? 2400 : 1024;
+      planche.height = res ? 3400 : 1446;
+      const ctx = planche.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, planche.width, planche.height);
+      const m = planche.width * 0.033;
+      const pw = (planche.width - m * 3) / 2;
+      const ph = (planche.height - m * 3) / 2;
+      const src = canvas;
+      for (let i = 0; i < 4; i++) {
+        const x = m + (i % 2) * (pw + m);
+        const y = m + Math.floor(i / 2) * (ph + m);
+        ctx.drawImage(src, 0, 0, src.width, src.height, x, y, pw, ph);
+      }
+    }
+
+    document.getElementById('btnPayer').onclick = () => {
+      Paddle.Checkout.open({
+        items: [{ priceId: 'pri_01m1c491gprh97sad2zw0v9tm8', quantity: 1 }],
+        eventCallback: (e) => {
+          if (e.name === 'checkout.completed') {
+            try { localStorage.setItem('idvalide_premium', '1'); } catch (err) {}
+            premiumOk = true;
+            modal.style.display = 'none';
+            genererPlanche(true);
+            document.getElementById('msgOK').textContent = '💎 Premium actif ! Votre planche haute résolution (600 dpi) :';
+            document.getElementById('premiumBlock').innerHTML = '<div style="background:#E8F7EE;color:#1E7A46;border-radius:10px;padding:12px;margin:10px 0;font-weight:700">✅ Premium débloqué — merci !</div>';
+          }
+        },
+      });
+    };
     // ─── État ───
     let video, canvas, faceDetector = null;
     let photoData = null; // ImageData courant
@@ -243,18 +281,7 @@
 
     // ─── Génération planche 35×45 (4 photos) ───
     document.getElementById('btnValider').onclick = () => {
-      const planche = document.getElementById('planche');
-      planche.width = 1024; planche.height = 1446; // ratio 4 photos 35x45 (2x2) + marges
-      const ctx = planche.getContext('2d');
-      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, planche.width, planche.height);
-      const pw = 460, ph = 590, m = 34;
-      const src = canvas;
-      for (let i = 0; i < 4; i++) {
-        const x = m + (i % 2) * (pw + m);
-        const y = m + Math.floor(i / 2) * (ph + m);
-        ctx.drawImage(src, 0, 0, src.width, src.height, x, y, pw, ph);
-      }
-      // fond blanc officiel (on remplit le rectangle du visage en blanc autour)
+      genererPlanche(false);
       setEtape(3);
       msgG.style.display = 'none';
       document.getElementById('msgOK').style.display = 'block';
@@ -267,15 +294,11 @@
       a.click();
     };
 
-    // ─── Premium (à brancher sur Paddle/LemonSqueezy — token à venir) ───
+    // ─── Premium ───
     const modal = document.getElementById('modalPremium');
     document.getElementById('btnPremium').onclick = () => { modal.style.display = 'flex'; };
     document.getElementById('btnFermer').onclick = () => { modal.style.display = 'none'; };
     modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
-    document.getElementById('btnPayer').onclick = () => {
-      // TODO: ouvrir le checkout Paddle/LemonSqueezy quand le token sera configuré
-      alert('⏳ Le paiement se branche dès la création du compte (2 min). Revenez bientôt — la version gratuite reste disponible 😉');
-    };
   </script>
 </body>
 </html>
