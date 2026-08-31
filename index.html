@@ -220,10 +220,18 @@
     async function startCamera() {
       video = document.getElementById('video');
       try {
+        if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+          throw new Error('https');
+        }
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 1280, height: 720 }, audio: false });
         video.srcObject = stream;
         await video.play();
-      } catch (e) { alert('Caméra indisponible — utilisez "Choisir une photo" à la place 😉'); }
+      } catch (e) {
+        const btnU = document.getElementById('btnUpload');
+        btnU.style.background = '#E8A33D';
+        btnU.style.boxShadow = '0 4px 14px rgba(232,163,61,.35)';
+        alert('🔒 La caméra demande le HTTPS (le cadenas) — il se finalise dans quelques minutes. En attendant, utilisez « Choisir une photo » 👇');
+      }
     }
     startCamera();
 
