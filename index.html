@@ -243,11 +243,11 @@
             const bb = det.detections[0].boundingBox;
             const fh = bb.height, fw = bb.width;
             const cx = bb.originX + fw / 2;
-            const cy = bb.originY + fh * 0.45;
-            const cH = fh / 0.72;              // visage = 72 % de la hauteur du cadre
+            const cy = bb.originY + fh * 0.5;
+            const cH = fh / 0.65;              // visage = 65 % de la hauteur du cadre
             const cW = cH * (35 / 45);         // ratio officiel 35×45
             let x0 = Math.round(cx - cW / 2);
-            let y0 = Math.round(cy - cH * 0.45);
+            let y0 = Math.round(cy - cH * 0.45); // visage légèrement au-dessus du centre
             x0 = Math.max(0, Math.min(x0, src.width - cW));
             y0 = Math.max(0, Math.min(y0, src.height - cH));
             region = [x0, y0, cW, cH];
@@ -492,8 +492,8 @@
           if (det2.detections && det2.detections.length) {
             const bb = det2.detections[0].boundingBox;
             const fh = bb.height, fw = bb.width;
-            const cx = bb.originX + fw / 2, cy = bb.originY + fh * 0.45;
-            const cH = fh / 0.72, cW = cH * (35 / 45);
+            const cx = bb.originX + fw / 2, cy = bb.originY + fh * 0.5;
+            const cH = fh / 0.65, cW = cH * (35 / 45);
             let x0 = Math.max(0, Math.min(Math.round(cx - cW / 2), canvas.width - cW));
             let y0 = Math.max(0, Math.min(Math.round(cy - cH * 0.45), canvas.height - cH));
             const tmp = document.createElement('canvas');
