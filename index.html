@@ -95,13 +95,21 @@
       </div>
 
       <div id="etapePhoto">
-        <video id="video" autoplay playsinline muted></video>
+        <div style="position:relative;width:100%;max-width:340px;margin:0 auto">
+          <video id="video" autoplay playsinline muted></video>
+          <!-- Guide de cadrage : ovale + repère objectif -->
+          <div id="guide" style="position:absolute;inset:0;pointer-events:none;display:none">
+            <div style="position:absolute;left:50%;top:14%;transform:translateX(-50%);width:56%;height:42%;border:3px dashed rgba(232,163,61,.95);border-radius:48% 48% 44% 44%;box-shadow:0 0 0 3px rgba(255,255,255,.4)"></div>
+            <div style="position:absolute;left:50%;top:10%;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:#F5A623;border:2px solid #fff;box-shadow:0 0 0 2px rgba(14,90,74,.4)"></div>
+            <div style="position:absolute;left:50%;bottom:6%;transform:translateX(-50%);background:rgba(14,90,74,.85);color:#fff;font-size:12px;font-weight:700;border-radius:20px;padding:6px 14px;white-space:nowrap">👁️ Regarde le POINT jaune, pas l'écran</div>
+          </div>
+        </div>
         <div style="text-align:center;margin-top:12px">
           <button class="btn" id="btnSelfie">📸 Prendre un selfie</button>
           <button class="btn ghost" id="btnUpload">🖼️ Choisir une photo</button>
           <input type="file" id="fileInput" accept="image/*" hidden>
         </div>
-        <div class="check" style="text-align:center">💡 Fond clair uni, visage bien éclairé, regard face à l'objectif</div>
+        <div class="check" style="text-align:center">💡 Tiens le téléphone <b>à hauteur des yeux</b> · visage dans l'ovale · regarde l'objectif</div>
       </div>
 
       <div id="etapeVerif" style="display:none;text-align:center">
@@ -344,6 +352,7 @@
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 1280, height: 720 }, audio: false });
         video.srcObject = stream;
         await video.play();
+        document.getElementById('guide').style.display = 'block';
       } catch (e) {
         const btnU = document.getElementById('btnUpload');
         btnU.style.background = '#E8A33D';
@@ -417,6 +426,9 @@
         checks.push([centrage ? '✅ Visage bien centré' : 'ℹ️ Visage décalé — corrigé automatiquement', centrage]);
         const taille = faceH > 0.30;
         checks.push([taille ? '✅ Visage assez grand' : 'ℹ️ Rapprochez-vous un peu de la caméra', taille]);
+        // angle : visage trop bas dans le cadre = téléphone trop bas (regard vers le haut)
+        const angleOk = cy < 0.55;
+        checks.push([angleOk ? '✅ Regard face à l\'objectif' : 'ℹ️ Téléphone trop bas — remontez-le à hauteur des yeux et regardez l\'objectif', angleOk]);
         const ctx = canvas.getContext('2d');
         const sample = ctx.getImageData(Math.round(W * 0.05), Math.round(H * 0.1), Math.round(W * 0.9), Math.round(H * 0.05)).data;
         let lum = 0; for (let i = 0; i < sample.length; i += 4) lum += (sample[i] + sample[i + 1] + sample[i + 2]) / 3;
