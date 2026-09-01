@@ -542,11 +542,18 @@
         } catch (e) {}
         checks.push([angleOk ? angleMsg : 'ℹ️ Téléphone trop bas — remontez-le à hauteur des yeux et regardez l\'objectif', angleOk]);
         const ctx = canvas.getContext('2d');
-        const sample = ctx.getImageData(Math.round(W * 0.05), Math.round(H * 0.1), Math.round(W * 0.9), Math.round(H * 0.05)).data;
-        let lum = 0; for (let i = 0; i < sample.length; i += 4) lum += (sample[i] + sample[i + 1] + sample[i + 2]) / 3;
-        lum /= sample.length / 4;
-        const fondClair = lum > 180;
-        checks.push([fondClair ? '✅ Fond clair et uni' : '❌ Fond trop sombre — placez-vous devant un mur clair', fondClair]);
+        // échantillonnage robuste du fond : bandes latérales + bande haute (hors visage)
+        let lum = 0, cnt = 0;
+        function echantillonner(x0, y0, w, hh) {
+          const d = ctx.getImageData(Math.round(W * x0), Math.round(H * y0), Math.round(W * w), Math.round(H * hh)).data;
+          for (let i = 0; i < d.length; i += 4) { lum += (d[i] + d[i + 1] + d[i + 2]) / 3; cnt++; }
+        }
+        echantillonner(0.03, 0.25, 0.09, 0.5);   // bande gauche
+        echantillonner(0.88, 0.25, 0.09, 0.5);   // bande droite
+        echantillonner(0.25, 0.03, 0.5, 0.06);   // bande haute
+        lum /= Math.max(1, cnt);
+        const fondClair = lum > 150;
+        checks.push([fondClair ? '✅ Fond clair et uni' : 'ℹ️ Fond un peu sombre — placez-vous devant un mur clair si possible (corrigeable)', fondClair]);
       }
       checks.forEach(([t, ok]) => {
         const d = document.createElement('div');
