@@ -109,7 +109,7 @@
           <input type="file" id="fileInput" accept="image/*" hidden>
         </div>
         <div id="liveGuide" style="display:none;text-align:center;background:rgba(14,90,74,.9);color:#fff;font-size:13px;font-weight:700;border-radius:20px;padding:8px 14px;margin:10px auto 0;max-width:340px">…</div>
-        <div class="check" style="text-align:center">💡 Tiens le téléphone <b>à hauteur des yeux</b> · visage dans l'ovale</div>
+        <div class="check" style="text-align:center">💡 Tiens le téléphone <b>à hauteur des yeux</b> · visage dans l'ovale · <b>regarde l'objectif</b> (le petit point en haut), pas l'écran</div>
       </div>
 
       <div id="etapeVerif" style="display:none;text-align:center">
@@ -338,8 +338,9 @@
     }
 
     // ─── Détecteur de visage MediaPipe (bundle local, import dynamique) ───
+    let faceLandmarker = null;
     async function initDetector() {
-      if (faceDetector) return;
+      if (faceDetector && faceLandmarker) return;
       try {
         const vision = await import('./vendor/vision_bundle.js');
         const resolver = vision.FilesetResolver;
@@ -355,6 +356,14 @@
             baseOptions: { modelAssetPath: 'vendor/blaze_face.tflite', delegate: 'CPU' },
             runningMode: 'IMAGE', minDetectionConfidence: 0.5,
           });
+        }
+        if (!faceLandmarker) {
+          try {
+            faceLandmarker = await vision.FaceLandmarker.createFromOptions(v, {
+              baseOptions: { modelAssetPath: 'vendor/face_landmarker.task', delegate: 'GPU' },
+              runningMode: 'IMAGE', numFaces: 1, minFaceDetectionConfidence: 0.4,
+            });
+          } catch (lmErr) { faceLandmarker = null; }
         }
         detectionOk = true;
       } catch (e) {
@@ -410,10 +419,30 @@
           const cy = (bb.originY + bb.height / 2) / tmp.height;
           const faceW = bb.width / tmp.width;
           let txt, color;
-          if (cy > 0.55) { txt = '⬆️ Téléphone trop bas — remonte-le à hauteur des yeux'; color = 'rgba(179,38,30,.9)'; }
+          // inclinaison de la tête : nez vs ligne des oreilles (faceLandmarker)
+          let penche = null;
+          if (faceLandmarker) {
+            try {
+              const lm = faceLandmarker.detect(tmp);
+              if (lm.faceLandmarks && lm.faceLandmarks.length) {
+                const p = lm.faceLandmarks[0];
+                const midEarY = (p[234].y + p[454].y) / 2;
+                const noseY = p[4].y;
+                const faceH = p[152].y - p[10].y;
+                if (faceH > 0) {
+                  const ratio = (noseY - midEarY) / faceH;
+                  if (ratio > 0.34) penche = 'bas';
+                  else if (ratio < -0.05) penche = 'haut';
+                }
+              }
+            } catch (e) {}
+          }
+          if (penche === 'bas') { txt = '⬇️ Tu regardes l\'écran — REGARDE L\'OBJECTIF (le petit point en haut du téléphone)'; color = 'rgba(179,38,30,.95)'; }
+          else if (penche === 'haut') { txt = '⬆️ Tête trop relevée — regarde l\'objectif devant toi'; color = 'rgba(232,163,61,.95)'; }
+          else if (cy > 0.55) { txt = '⬆️ Téléphone trop bas — remonte-le à hauteur des yeux'; color = 'rgba(179,38,30,.9)'; }
           else if (faceW > 0.80) { txt = '↔️ Recule un peu le téléphone'; color = 'rgba(179,38,30,.9)'; }
           else if (faceW < 0.30) { txt = '↔️ Approche un peu le téléphone'; color = 'rgba(232,163,61,.95)'; }
-          else { txt = '✅ Parfait ! Prends la photo'; color = 'rgba(14,90,74,.95)'; }
+          else { txt = '✅ Parfait ! Regarde l\'objectif et prends la photo'; color = 'rgba(14,90,74,.95)'; }
           el.textContent = txt; el.style.background = color;
         } catch (e) {}
       }, 600);
@@ -492,9 +521,26 @@
         checks.push([centrage ? '✅ Visage bien centré' : 'ℹ️ Visage décalé — corrigé automatiquement', centrage]);
         const taille = faceH > 0.30;
         checks.push([taille ? '✅ Visage assez grand' : 'ℹ️ Rapprochez-vous un peu de la caméra', taille]);
-        // angle : visage trop bas dans le cadre = téléphone trop bas (regard vers le haut)
-        const angleOk = cy < 0.55;
-        checks.push([angleOk ? '✅ Regard face à l\'objectif' : 'ℹ️ Téléphone trop bas — remontez-le à hauteur des yeux et regardez l\'objectif', angleOk]);
+        // angle : visage trop bas = téléphone trop bas ; sinon inclinaison réelle de la tête
+        let angleOk = cy < 0.55;
+        let angleMsg = '✅ Regard face à l\'objectif';
+        try {
+          if (faceLandmarker) {
+            const lm = faceLandmarker.detect(canvas);
+            if (lm.faceLandmarks && lm.faceLandmarks.length) {
+              const p = lm.faceLandmarks[0];
+              const midEarY = (p[234].y + p[454].y) / 2;
+              const noseY = p[4].y;
+              const faceH = p[152].y - p[10].y;
+              if (faceH > 0) {
+                const ratio = (noseY - midEarY) / faceH;
+                angleOk = ratio <= 0.34 && ratio >= -0.05 && cy < 0.55;
+                angleMsg = angleOk ? '✅ Regard face à l\'objectif' : 'ℹ️ Regardez l\'OBJECTIF (en haut du téléphone) pour être bien droit';
+              }
+            }
+          }
+        } catch (e) {}
+        checks.push([angleOk ? angleMsg : 'ℹ️ Téléphone trop bas — remontez-le à hauteur des yeux et regardez l\'objectif', angleOk]);
         const ctx = canvas.getContext('2d');
         const sample = ctx.getImageData(Math.round(W * 0.05), Math.round(H * 0.1), Math.round(W * 0.9), Math.round(H * 0.05)).data;
         let lum = 0; for (let i = 0; i < sample.length; i += 4) lum += (sample[i] + sample[i + 1] + sample[i + 2]) / 3;
