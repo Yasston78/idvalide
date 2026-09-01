@@ -217,7 +217,6 @@
   </footer>
 
   <script src="vendor/vision_bundle.js"></script>
-  <script src="vendor/paddle.js"></script>
   <script>
     // ─── Stats (compteur maison — ne bloque JAMAIS l'utilisateur) ───
     const STATS_URL = 'https://stats.idvalide.fr/hit';
@@ -226,14 +225,7 @@
     }
     hit('visit');
 
-    // ─── Paiement Paddle (checkout overlay) — ne doit JAMAIS bloquer l'outil ───
-    let paddleDispo = false;
-    try {
-      if (typeof Paddle !== 'undefined' && Paddle.Setup) {
-        Paddle.Setup({ token: 'live_7643b30290221751f09a5fe2df4' });
-        paddleDispo = true;
-      }
-    } catch (e) { paddleDispo = false; }
+    // ─── Paiement PayPal (via stats.idvalide.fr) — ne bloque JAMAIS l'outil ───
     let premiumOk = false;
     try { premiumOk = localStorage.getItem('idvalide_premium') === '1'; } catch (e) {}
 
@@ -285,27 +277,41 @@
       }
     }
 
-    document.getElementById('btnPayer').onclick = () => {
-      if (!paddleDispo || typeof Paddle === 'undefined' || !Paddle.Checkout) {
+    document.getElementById('btnPayer').onclick = async () => {
+      try {
+        const r = await fetch('https://stats.idvalide.fr/paypal/create', { method: 'POST' });
+        const d = await r.json();
+        if (d.approve) {
+          location.href = d.approve;
+        } else {
+          alert('Impossible de créer le paiement (' + (d.err || 'erreur') + '). Réessayez dans un instant 😉');
+        }
+      } catch (e) {
         alert('Le paiement est momentanément indisponible (réseau). Réessayez dans un instant 😉');
-        return;
       }
-      Paddle.Checkout.open({
-        items: [{ priceId: 'pri_01m1c491gprh97sad2zw0v9tm8', quantity: 1 }],
-        eventCallback: (e) => {
-          if (e.name === 'checkout.completed') {
-            hit('premium');
-            try { localStorage.setItem('idvalide_premium', '1'); } catch (err) {}
-            premiumOk = true;
-            modal.style.display = 'none';
-            genererPlanche(true);
-            document.getElementById('msgOK').textContent = '💎 Merci ! Votre planche haute résolution (600 dpi) :';
-            document.getElementById('premiumBlock').innerHTML = '<div style="background:#E9F3EF;color:#0E5A4A;border-radius:10px;padding:12px;margin:10px 0;font-weight:700">✅ Téléchargement débloqué — merci !</div>';
-            telechargerPlanche();
-          }
-        },
-      });
     };
+    // ─── Retour PayPal (paiement réussi) : débloque et télécharge ───
+    (function () {
+      const p = new URLSearchParams(location.search);
+      if (p.get('paypal') === 'ok' && p.get('token')) {
+        fetch('https://stats.idvalide.fr/paypal/capture?token=' + p.get('token'), { method: 'POST' })
+          .then(r => r.json())
+          .then(d => {
+            if (d.status === 'COMPLETED') {
+              hit('premium');
+              try { localStorage.setItem('idvalide_premium', '1'); } catch (err) {}
+              premiumOk = true;
+              genererPlanche(true);
+              document.getElementById('msgOK').textContent = '💎 Merci ! Votre planche haute résolution (600 dpi) :';
+              document.getElementById('premiumBlock').innerHTML = '<div style="background:#E9F3EF;color:#0E5A4A;border-radius:10px;padding:12px;margin:10px 0;font-weight:700">✅ Paiement confirmé — téléchargement débloqué !</div>';
+              telechargerPlanche();
+              setTimeout(() => history.replaceState(null, '', location.pathname), 500);
+            } else {
+              alert('Le paiement n\'a pas pu être confirmé (' + d.status + '). Contactez-nous si vous avez été débité.');
+            }
+          });
+      }
+    })();
     // ─── État ───
     let video, canvas, faceDetector = null;
     let photoData = null; // ImageData courant
