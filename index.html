@@ -237,7 +237,14 @@
     function hit(type) {
       try { fetch(STATS_URL + '?type=' + type, { method: 'POST', mode: 'no-cors' }); } catch (e) {}
     }
+    function evt(e) {
+      let ref = '';
+      try { ref = document.referrer || ''; } catch (err) {}
+      const src = ref.includes('tiktok') ? 'tiktok' : ref.includes('instagram') ? 'instagram' : ref.includes('facebook') ? 'facebook' : ref.includes('google') ? 'google' : ref ? 'autre' : 'direct';
+      try { fetch('https://stats.idvalide.fr/event?e=' + encodeURIComponent(e) + '&ref=' + src, { method: 'POST', mode: 'no-cors' }); } catch (err) {}
+    }
     hit('visit');
+    evt('visit');
 
     // ─── Paiement PayPal (via stats.idvalide.fr) — ne bloque JAMAIS l'outil ───
     let premiumOk = false;
@@ -292,6 +299,7 @@
     }
 
     document.getElementById('btnPayer').onclick = async () => {
+      evt('pay');
       try {
         const r = await fetch('https://stats.idvalide.fr/paypal/create', { method: 'POST' });
         const d = await r.json();
@@ -510,6 +518,7 @@
     }
 
     async function verifier() {
+      evt('verif');
       await initDetector();
       setEtape(2);
       if (!detectionOk) {
@@ -625,6 +634,7 @@
     }
 
     function afficherAjuster() {
+      evt('ajuster');
       if (!photoOriginale) { photoOriginale = document.createElement('canvas'); photoOriginale.width = canvas.width; photoOriginale.height = canvas.height; photoOriginale.getContext('2d').drawImage(canvas, 0, 0); }
       const ca = document.getElementById('canvasAjust');
       ca.width = photoOriginale.width; ca.height = photoOriginale.height;
@@ -726,6 +736,7 @@
         genererPlanche(true);
         telechargerPlanche();
       } else {
+        evt('paywall');
         modal.style.display = 'flex';
       }
     };
