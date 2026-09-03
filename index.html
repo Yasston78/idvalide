@@ -233,6 +233,7 @@
     <p style="margin-top:8px">© 2026 IDValide — idvalide.fr</p>
   </footer>
 
+  <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
   <script src="vendor/vision_bundle.js"></script>
   <script>
     // ─── Stats (compteur maison — ne bloque JAMAIS l'utilisateur) ───
@@ -301,8 +302,32 @@
       }
     }
 
+    function debloquerPremium() {
+      hit('premium');
+      try { localStorage.setItem('idvalide_premium', '1'); } catch (err) {}
+      premiumOk = true;
+      genererPlanche(true);
+      document.getElementById('msgOK').textContent = '💎 Merci ! Votre planche haute résolution (600 dpi) :';
+      document.getElementById('premiumBlock').innerHTML = '<div style="background:#E9F3EF;color:#0E5A4A;border-radius:10px;padding:12px;margin:10px 0;font-weight:700">✅ Paiement confirmé — téléchargement débloqué !</div>';
+      telechargerPlanche();
+    }
     document.getElementById('btnPayer').onclick = async () => {
       evt('pay');
+      if (window.Paddle && window.Paddle.Checkout) {
+        try {
+          window.Paddle.Checkout.open({
+            items: [{ priceId: 'pri_01m1c491gprh97sad2zw0v9tm8', quantity: 1 }],
+            settings: { displayMode: 'overlay', theme: 'light' },
+            eventCallback: function (event) {
+              if (event && event.name === 'checkout.completed') {
+                debloquerPremium();
+              }
+            },
+          });
+          return;
+        } catch (e) {}
+      }
+      // Secours : PayPal (sans redirection douloureuse si possible)
       try {
         const r = await fetch('https://stats.idvalide.fr/paypal/create', { method: 'POST' });
         const d = await r.json();
@@ -315,6 +340,12 @@
         alert('Le paiement est momentanément indisponible (réseau). Réessayez dans un instant 😉');
       }
     };
+    // Setup Paddle (paiement par carte, sans compte)
+    if (window.Paddle) {
+      try {
+        window.Paddle.Setup({ token: 'live_7643b30290221751f09a5fe2df4', environment: 'live' });
+      } catch (e) {}
+    }
     // ─── Retour PayPal (paiement réussi) : débloque et télécharge ───
     (function () {
       const p = new URLSearchParams(location.search);
@@ -323,13 +354,7 @@
           .then(r => r.json())
           .then(d => {
             if (d.status === 'COMPLETED') {
-              hit('premium');
-              try { localStorage.setItem('idvalide_premium', '1'); } catch (err) {}
-              premiumOk = true;
-              genererPlanche(true);
-              document.getElementById('msgOK').textContent = '💎 Merci ! Votre planche haute résolution (600 dpi) :';
-              document.getElementById('premiumBlock').innerHTML = '<div style="background:#E9F3EF;color:#0E5A4A;border-radius:10px;padding:12px;margin:10px 0;font-weight:700">✅ Paiement confirmé — téléchargement débloqué !</div>';
-              telechargerPlanche();
+              debloquerPremium();
               setTimeout(() => history.replaceState(null, '', location.pathname), 500);
             } else {
               alert('Le paiement n\'a pas pu être confirmé (' + d.status + '). Contactez-nous si vous avez été débité.');
