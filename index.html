@@ -117,7 +117,7 @@
           <input type="file" id="fileInput" accept="image/*" hidden>
         </div>
         <div id="liveGuide" style="display:none;text-align:center;background:rgba(14,90,74,.9);color:#fff;font-size:13px;font-weight:700;border-radius:20px;padding:8px 14px;margin:10px auto 0;max-width:340px">…</div>
-        <div class="check" style="text-align:center">💡 Tiens le téléphone <b>à hauteur des yeux</b> · <b>tes yeux sur les pastilles</b> 🟡 · regarde l'objectif (le petit point en haut)</div>
+        <div class="check" style="text-align:center">💡 Place-toi devant un <b>fond BLANC</b> · téléphone à hauteur des yeux · <b>tes yeux sur les pastilles</b> 🟡 · regarde l'objectif (en haut)</div>
       </div>
 
       <div id="etapeVerif" style="display:none;text-align:center">
@@ -496,6 +496,22 @@
               }
             } catch (e) {}
           }
+          let fondOk = null;
+          try {
+            const c2 = tmp.getContext('2d');
+            const W2 = tmp.width, H2 = tmp.height;
+            let lum = 0, cnt = 0;
+            function ech(x0, y0, x1, y1) {
+              const d = c2.getImageData(Math.round(x0), Math.round(y0), Math.max(1, Math.round(x1 - x0)), Math.max(1, Math.round(y1 - y0))).data;
+              for (let i = 0; i < d.length; i += 4) { lum += (d[i] + d[i + 1] + d[i + 2]) / 3; cnt++; }
+            }
+            ech(W2 * 0.02, H2 * 0.25, W2 * 0.14, H2 * 0.85);   // bande gauche (hors visage)
+            ech(W2 * 0.86, H2 * 0.25, W2 * 0.98, H2 * 0.85);   // bande droite
+            ech(W2 * 0.2, H2 * 0.03, W2 * 0.8, H2 * 0.09);      // bande haute
+            if (cnt) lum /= cnt;
+            if (lum < 150) fondOk = 'sombre';
+            else if (lum < 200) fondOk = 'moyen';
+          } catch (e) {}
           let yeuxAlignes = null;
           if (faceLandmarker) {
             try {
@@ -518,6 +534,8 @@
           else if (cy > 0.55) { txt = '⬆️ Téléphone trop bas — remonte-le à hauteur des yeux'; color = 'rgba(179,38,30,.9)'; }
           else if (faceW > 0.80) { txt = '↔️ Recule un peu le téléphone'; color = 'rgba(179,38,30,.9)'; }
           else if (faceW < 0.30) { txt = '↔️ Approche un peu le téléphone'; color = 'rgba(232,163,61,.95)'; }
+          else if (fondOk === 'sombre') { txt = '🎨 Fond trop sombre — place-toi devant un mur BLANC, sinon la photo sera refusée'; color = 'rgba(179,38,30,.95)'; }
+          else if (fondOk === 'moyen') { txt = '🎨 Fond pas assez clair — un mur blanc uni, c\'est l\'idéal'; color = 'rgba(232,163,61,.95)'; }
           else if (yeuxAlignes) { txt = '👀 Bouge la tête ' + (yeuxAlignes === 'haut' ? 'vers le HAUT' : yeuxAlignes === 'bas' ? 'vers le BAS' : yeuxAlignes === 'gauche' ? 'vers la GAUCHE' : 'vers la DROITE') + ' : tes yeux doivent être sur les pastilles 🟡'; color = 'rgba(232,163,61,.95)'; }
           else { txt = '✅ Yeux alignés ! Regarde l\'objectif et prends la photo'; color = 'rgba(14,90,74,.95)'; }
           el.textContent = txt; el.style.background = color;
