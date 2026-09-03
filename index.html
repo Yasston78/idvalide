@@ -97,10 +97,18 @@
       <div id="etapePhoto">
         <div style="position:relative;width:100%;max-width:340px;margin:0 auto">
           <video id="video" autoplay playsinline muted style="transform:scaleX(-1)"></video>
-          <!-- Guide de cadrage : ovale portrait -->
+          <!-- Guide de cadrage : gabarit visage + pastilles oculaires -->
           <div id="guide" style="position:absolute;inset:0;pointer-events:none;display:none">
-            <div style="position:absolute;left:50%;top:18%;transform:translateX(-50%);width:56%;height:62%;border:3px dashed rgba(232,163,61,.95);border-radius:50%;box-shadow:0 0 0 3px rgba(255,255,255,.35)"></div>
-            <div style="position:absolute;left:50%;bottom:5%;transform:translateX(-50%);background:rgba(14,90,74,.85);color:#fff;font-size:12px;font-weight:700;border-radius:20px;padding:6px 14px;white-space:nowrap">Visage dans l'ovale</div>
+            <svg id="gabarit" viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%">
+              <!-- silhouette fantôme du visage (proportions tête ~75 %) -->
+              <ellipse cx="50" cy="52" rx="24" ry="32" fill="rgba(255,255,255,0.10)" stroke="rgba(255,255,255,0.55)" stroke-width="0.8" stroke-dasharray="3 2"/>
+              <!-- ligne des yeux (subtile) -->
+              <line x1="34" y1="44" x2="66" y2="44" stroke="rgba(232,163,61,0.35)" stroke-width="0.5"/>
+              <!-- pastilles oculaires -->
+              <circle id="pastilleG" cx="41" cy="44" r="1.7" fill="#E8A33D" stroke="#fff" stroke-width="0.6"/>
+              <circle id="pastilleD" cx="59" cy="44" r="1.7" fill="#E8A33D" stroke="#fff" stroke-width="0.6"/>
+            </svg>
+            <div style="position:absolute;left:50%;bottom:4%;transform:translateX(-50%);background:rgba(14,90,74,.88);color:#fff;font-size:12px;font-weight:700;border-radius:20px;padding:6px 14px;white-space:nowrap">👀 Place tes yeux sur les pastilles</div>
           </div>
         </div>
         <div style="text-align:center;margin-top:12px">
@@ -109,7 +117,7 @@
           <input type="file" id="fileInput" accept="image/*" hidden>
         </div>
         <div id="liveGuide" style="display:none;text-align:center;background:rgba(14,90,74,.9);color:#fff;font-size:13px;font-weight:700;border-radius:20px;padding:8px 14px;margin:10px auto 0;max-width:340px">…</div>
-        <div class="check" style="text-align:center">💡 Tiens le téléphone <b>à hauteur des yeux</b> · visage dans l'ovale · <b>regarde l'objectif</b> (le petit point en haut), pas l'écran</div>
+        <div class="check" style="text-align:center">💡 Tiens le téléphone <b>à hauteur des yeux</b> · <b>tes yeux sur les pastilles</b> 🟡 · regarde l'objectif (le petit point en haut)</div>
       </div>
 
       <div id="etapeVerif" style="display:none;text-align:center">
@@ -488,12 +496,30 @@
               }
             } catch (e) {}
           }
+          let yeuxAlignes = null;
+          if (faceLandmarker) {
+            try {
+              const lm2 = faceLandmarker.detect(tmp);
+              if (lm2.faceLandmarks && lm2.faceLandmarks.length) {
+                const p = lm2.faceLandmarks[0];
+                if (p[468] && p[473]) {
+                  const mx = (p[468].x + p[473].x) / 2 * 100;
+                  const my = (p[468].y + p[473].y) / 2 * 100;
+                  const mX = 100 - mx; // vidéo miroirée
+                  const mY = my;
+                  const dx = Math.abs(mX - 50), dy = Math.abs(mY - 44);
+                  if (dx > 9 || dy > 8) yeuxAlignes = dx > dy ? (mX < 50 ? 'gauche' : 'droite') : (mY < 44 ? 'haut' : 'bas');
+                }
+              }
+            } catch (e) {}
+          }
           if (penche === 'bas') { txt = '⬇️ Tu regardes l\'écran — REGARDE L\'OBJECTIF (le petit point en haut du téléphone)'; color = 'rgba(179,38,30,.95)'; }
           else if (penche === 'haut') { txt = '⬆️ Tête trop relevée — regarde l\'objectif devant toi'; color = 'rgba(232,163,61,.95)'; }
           else if (cy > 0.55) { txt = '⬆️ Téléphone trop bas — remonte-le à hauteur des yeux'; color = 'rgba(179,38,30,.9)'; }
           else if (faceW > 0.80) { txt = '↔️ Recule un peu le téléphone'; color = 'rgba(179,38,30,.9)'; }
           else if (faceW < 0.30) { txt = '↔️ Approche un peu le téléphone'; color = 'rgba(232,163,61,.95)'; }
-          else { txt = '✅ Parfait ! Regarde l\'objectif et prends la photo'; color = 'rgba(14,90,74,.95)'; }
+          else if (yeuxAlignes) { txt = '👀 Bouge la tête ' + (yeuxAlignes === 'haut' ? 'vers le HAUT' : yeuxAlignes === 'bas' ? 'vers le BAS' : yeuxAlignes === 'gauche' ? 'vers la GAUCHE' : 'vers la DROITE') + ' : tes yeux doivent être sur les pastilles 🟡'; color = 'rgba(232,163,61,.95)'; }
+          else { txt = '✅ Yeux alignés ! Regarde l\'objectif et prends la photo'; color = 'rgba(14,90,74,.95)'; }
           el.textContent = txt; el.style.background = color;
         } catch (e) {}
       }, 600);
