@@ -145,6 +145,8 @@
         <canvas id="planche" class="planche"></canvas>
         <div class="msg ok" id="msgOK">✅ Photo conforme ! Votre planche 35×45 est prête :</div>
         <button class="btn" id="btnDownload" style="background:#0E5A4A;color:#fff;box-shadow:0 4px 14px rgba(14,90,74,.3)">⬇️ Télécharger ma photo — Gratuit 🎁</button>
+        <div id="checksResult" style="text-align:left;margin:10px auto 0;max-width:340px"></div>
+        <button class="btn ghost" id="btnAjuster2" style="margin-top:10px">🎯 Ajuster le cadrage</button>
         <div id="premiumBlock">
           <div style="font-size:12px;color:#8B9A94;margin-top:6px">Paiement unique · sans abonnement · <b>remboursée si refusée par l'ANTS</b></div>
         </div>
@@ -591,11 +593,121 @@
     }
 
         // ─── Vérification conformité (affichée APRÈS le cadrage) ───
+    // ─── Détection unique (MediaPipe IMAGE mode : 2 appels rapprochés → erreur de timestamp) ───
+    async function detecterUneFois(src) {
+      for (let i = 0; i < 3; i++) {
+        try { return faceDetector.detect(src); }
+        catch (e) { await new Promise(r => setTimeout(r, 40)); }
+      }
+      return { detections: [] };
+    }
+
     async function demarrerRecadrage() {
       evt('verif');
+      regionAjust = null; // nouvelle photo → on repart d'un cadrage auto propre
       await initDetector();
-      // L'utilisateur arrive DIRECTEMENT sur le recadrage
-      afficherAjuster();
+      // Parcours 1 clic : visage détecté → planche 35×45 générée immédiatement
+      let det = { detections: [] };
+      try { if (faceDetector && detectionOk) det = await detecterUneFois(canvas); } catch (e) {}
+      if (det.detections && det.detections.length > 0) { await afficherResultat(det); }
+      else { afficherAjuster(); } // pas de visage → cadrage manuel guidé
+    }
+
+    // ─── Rendu des checks de conformité (détection passée en paramètre = pas de re-détection) ───
+    function afficherChecksDans(container, src, det) {
+      container.innerHTML = '';
+      if (!detectionOk || !det || !det.detections || !det.detections.length) {
+        container.innerHTML = '<div class="check bad">⚠️ Visage non détecté — éclairez-vous et regardez la caméra, ou choisissez une photo.</div>';
+        return;
+      }
+      const checks = [];
+      const W = src.width, H = src.height;
+      const bb = det.detections[0].boundingBox;
+      const faceW = bb.width / W, faceH = bb.height / H;
+      const cx = (bb.originX + bb.width / 2) / W, cy = (bb.originY + bb.height / 2) / H;
+      const centrage = Math.abs(cx - 0.5) < 0.18 && Math.abs(cy - 0.42) < 0.18;
+      checks.push([`✅ Visage détecté (${Math.round(faceW * 100)} % de largeur)`, true]);
+      checks.push([centrage ? '✅ Visage bien centré' : 'ℹ️ Visage décalé — corrigé par le cadrage', centrage]);
+      const taille = faceH > 0.30;
+      checks.push([taille ? '✅ Visage assez grand' : 'ℹ️ Rapprochez-vous un peu de la caméra', taille]);
+      let angleOk = cy < 0.55;
+      let angleMsg = '✅ Regard face à l\'objectif';
+      try {
+        if (faceLandmarker) {
+          const lm = faceLandmarker.detect(src);
+          if (lm.faceLandmarks && lm.faceLandmarks.length) {
+            const p = lm.faceLandmarks[0];
+            const midEarY = (p[234].y + p[454].y) / 2;
+            const noseY = p[4].y;
+            const faceHh = p[152].y - p[10].y;
+            if (faceHh > 0) {
+              const ratio = (noseY - midEarY) / faceHh;
+              angleOk = ratio <= 0.34 && ratio >= -0.05 && cy < 0.55;
+              angleMsg = angleOk ? '✅ Regard face à l\'objectif' : 'ℹ️ Regardez l\'OBJECTIF (en haut du téléphone) pour être bien droit';
+            }
+          }
+        }
+      } catch (e) {}
+      checks.push([angleOk ? angleMsg : 'ℹ️ Téléphone trop bas — regardez l\'objectif', angleOk]);
+      const ctx = src.getContext('2d');
+      let lum = 0, cnt = 0;
+      function echantillonner(x0, y0, w, hh) {
+        const d = ctx.getImageData(Math.round(W * x0), Math.round(H * y0), Math.round(W * w), Math.round(H * hh)).data;
+        for (let i = 0; i < d.length; i += 4) { lum += (d[i] + d[i + 1] + d[i + 2]) / 3; cnt++; }
+      }
+      echantillonner(0.03, 0.25, 0.09, 0.5);
+      echantillonner(0.88, 0.25, 0.09, 0.5);
+      echantillonner(0.25, 0.03, 0.5, 0.06);
+      lum /= Math.max(1, cnt);
+      const fondClair = lum > 150;
+      checks.push([fondClair ? '✅ Fond clair et uni' : 'ℹ️ Fond un peu sombre — un mur clair serait mieux (corrigeable)', fondClair]);
+      checks.forEach(([t, ok]) => {
+        const d = document.createElement('div');
+        d.className = 'check ' + (ok ? 'ok' : 'bad');
+        d.textContent = t;
+        container.appendChild(d);
+      });
+    }
+
+    // ─── Planche directe : recadrage auto (norme) + génération + checks ───
+    async function afficherResultat(detOrig) {
+      if (!regionAjust) {
+        // recadrage automatique autour du visage (norme : yeux aux ~70 % de la hauteur)
+        if (!detOrig || !detOrig.detections || !detOrig.detections.length) {
+          try { detOrig = await detecterUneFois(canvas); } catch (e) {}
+        }
+        const bb = detOrig && detOrig.detections && detOrig.detections[0] ? detOrig.detections[0].boundingBox : null;
+        if (!bb) { afficherAjuster(); return; }
+        const W0 = canvas.width, H0 = canvas.height;
+        const fh = bb.height, fw = bb.width;
+        const cx = bb.originX + fw / 2;
+        const eyesY = bb.originY + fh * 0.30;
+        const cH = fh / 0.65;
+        const cW = cH * (35 / 45);
+        let x0 = Math.round(cx - cW / 2);
+        let y0 = Math.round(eyesY - cH * 0.30);
+        x0 = Math.max(0, Math.min(x0, W0 - cW));
+        y0 = Math.max(0, Math.min(y0, H0 - cH));
+        regionAjust = [x0, y0, cW, cH];
+      }
+      try {
+        genererPlanche(false);
+        setEtape(3);
+        msgG.style.display = 'none';
+        const okEl = document.getElementById('msgOK');
+        okEl.style.display = 'block';
+        okEl.textContent = '🎉 Photo prête ! Votre planche 35×45 (4 photos) :';
+        const cr = document.getElementById('checksResult');
+        cr.innerHTML = '';
+        const srcChecks = canvas; // photo d'origine (checks sur la photo, pas sur le recadrage)
+        let detChecks = detOrig || null;
+        if (!detChecks || detChecks.detections.length === 0) {
+          try { detChecks = await detecterUneFois(srcChecks); } catch (e) {}
+        }
+        try { afficherChecksDans(cr, srcChecks, detChecks); } catch (e) {}
+        hit('generate');
+        try { document.getElementById('planche').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+      } catch (e) { afficherAjuster(); }
     }
 
     function afficherChecks(src, titre) {
@@ -743,12 +855,10 @@ document.getElementById('btnRetry').onclick = () => { setEtape(1); startCamera()
       let x0 = Math.max(0, Math.min(Math.round(cx - cW / 2), W - cW));
       let y0 = Math.max(0, Math.min(Math.round(cy - cH * 0.45), H - cH));
       regionAjust = [x0, y0, cW, cH];
-      // afficher l'aperçu recadré sur l'écran de vérification
+      // recadrer l'aperçu puis afficher DIRECTEMENT la planche finale
       canvas.width = Math.round(cW); canvas.height = Math.round(cH);
       canvas.getContext('2d').drawImage(photoOriginale, x0, y0, cW, cH, 0, 0, canvas.width, canvas.height);
-      setEtape(2);
-      document.getElementById('btnValider').style.display = '';
-      afficherChecks(photoOriginale, '🎯 Cadrage ajusté ! Vérification :');
+      afficherResultat();
     };
 
     // ─── Avis des utilisateurs ───
@@ -786,12 +896,14 @@ document.getElementById('btnRetry').onclick = () => { setEtape(1); startCamera()
     }
 
     document.getElementById('btnDownload').onclick = () => {
+      evt('download'); // mesure la VRAIE conversion (téléchargement effectif)
       // Offre de lancement : téléchargement gratuit (paiement réactivé plus tard)
       try { localStorage.setItem('idvalide_premium', '1'); } catch (err) {}
       premiumOk = true;
       genererPlanche(true);
       telechargerPlanche();
     };
+    document.getElementById('btnAjuster2').onclick = () => { afficherAjuster(); };
 
     // ─── Premium ───
     const modal = document.getElementById('modalPremium');
