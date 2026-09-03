@@ -145,8 +145,10 @@
         <canvas id="planche" class="planche"></canvas>
         <div class="msg ok" id="msgOK">✅ Photo conforme ! Votre planche 35×45 est prête :</div>
         <button class="btn" id="btnDownload" style="background:#0E5A4A;color:#fff;box-shadow:0 4px 14px rgba(14,90,74,.3)">⬇️ Télécharger ma photo — Gratuit 🎁</button>
+        <div id="dlHint" style="display:none;text-align:center;font-size:14px;font-weight:700;margin:6px auto 0;max-width:340px"></div>
         <div id="checksResult" style="text-align:left;margin:10px auto 0;max-width:340px"></div>
         <button class="btn ghost" id="btnAjuster2" style="margin-top:10px">🎯 Ajuster le cadrage</button>
+        <button class="btn ghost" id="btnOuvrir" style="margin-top:6px">🔍 Ouvrir la planche en grand</button>
         <div id="premiumBlock">
           <div style="font-size:12px;color:#8B9A94;margin-top:6px">Paiement unique · sans abonnement · <b>remboursée si refusée par l'ANTS</b></div>
         </div>
@@ -889,20 +891,90 @@ document.getElementById('btnRetry').onclick = () => { setEtape(1); startCamera()
     };
 
     function telechargerPlanche() {
-      const a = document.createElement('a');
-      a.href = document.getElementById('planche').toDataURL('image/png');
-      a.download = 'photo-identite-ANTS-35x45.png';
-      a.click();
+      // Blob URL (léger) plutôt que dataURL (8-15 Mo en base64) : fiable sur mobile
+      return new Promise((resolve, reject) => {
+        try {
+          const planche = document.getElementById('planche');
+          const a = document.createElement('a');
+          a.download = 'photo-identite-ANTS-35x45.png';
+          const lancer = (url) => {
+            a.href = url;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 4000);
+            resolve();
+          };
+          if (typeof planche.toBlob === 'function') {
+            planche.toBlob((blob) => {
+              if (blob) lancer(URL.createObjectURL(blob));
+              else lancer(planche.toDataURL('image/png'));
+            }, 'image/png');
+          } else {
+            lancer(planche.toDataURL('image/png'));
+          }
+        } catch (err) { reject(err); }
+      });
     }
 
-    document.getElementById('btnDownload').onclick = () => {
-      evt('download'); // mesure la VRAIE conversion (téléchargement effectif)
+    function afficherHint(msg, ok) {
+      const h = document.getElementById('dlHint');
+      h.textContent = msg;
+      h.style.color = ok ? '#0E5A4A' : '#9a5b00';
+      h.style.display = 'block';
+      clearTimeout(h._t);
+      h._t = setTimeout(() => { h.style.display = 'none'; }, 9000);
+    }
+
+    function ouvrirEnGrand() {
+      // Filet de sécurité universel : l'utilisateur enregistre par appui long
+      try {
+        const planche = document.getElementById('planche');
+        const url = planche.toDataURL('image/jpeg', 0.92);
+        const ov = document.createElement('div');
+        ov.style.cssText = 'position:fixed;inset:0;background:rgba(8,16,14,.97);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:16px';
+        const img = document.createElement('img');
+        img.src = url;
+        img.style.cssText = 'max-width:100%;max-height:78vh;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.55)';
+        const p = document.createElement('div');
+        p.textContent = "👆 Appuie long sur la photo → « Enregistrer l'image »";
+        p.style.cssText = 'color:#fff;font-size:15px;font-weight:700;text-align:center;max-width:320px';
+        ov.onclick = () => ov.remove();
+        ov.appendChild(img);
+        ov.appendChild(p);
+        document.body.appendChild(ov);
+        evt('ouvrir_grand');
+      } catch (err) {}
+    }
+
+    let dlBusy = false;
+    document.getElementById('btnDownload').onclick = async () => {
+      if (dlBusy) return;
+      dlBusy = true;
+      evt('download'); // intention de téléchargement
       // Offre de lancement : téléchargement gratuit (paiement réactivé plus tard)
       try { localStorage.setItem('idvalide_premium', '1'); } catch (err) {}
       premiumOk = true;
-      genererPlanche(true);
-      telechargerPlanche();
+      const btn = document.getElementById('btnDownload');
+      const txt0 = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = '⏳ Préparation de votre planche…';
+      try {
+        await new Promise((r) => setTimeout(r, 60)); // laisse l'UI afficher le message
+        genererPlanche(true);
+        await telechargerPlanche();
+        evt('download_ok');
+        afficherHint("✅ Téléchargement lancé ! Sinon : bouton « Ouvrir en grand » → appui long.", true);
+      } catch (err) {
+        evt('download_err');
+        ouvrirEnGrand();
+        afficherHint("Le téléchargement a échoué — appuie long sur la photo pour l'enregistrer.", false);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = txt0;
+        dlBusy = false;
+      }
     };
+    document.getElementById('btnOuvrir').onclick = () => { ouvrirEnGrand(); };
     document.getElementById('btnAjuster2').onclick = () => { afficherAjuster(); };
 
     // ─── Premium ───
