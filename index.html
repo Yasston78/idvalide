@@ -229,7 +229,7 @@
   
 
   <footer>
-    <a href="/">Accueil</a><a href="/blog/">Blog</a><a href="/politique-confidentialite.html">Confidentialité</a><a href="/cgu.html">CGU</a><a href="/remboursements.html">Remboursements</a>
+    <a href="/">Accueil</a><a href="/blog/">Blog</a><a href="/politique-confidentialite.html">Confidentialité</a><a href="/cgu.html">CGU</a>
     <p style="margin-top:8px">© 2026 IDValide — idvalide.fr</p>
   </footer>
 
@@ -313,7 +313,8 @@
     }
     document.getElementById('btnPayer').onclick = async () => {
       evt('pay');
-      if (window.Paddle && window.Paddle.Checkout) {
+      const PADDLE_ACTIF = false; // ← passer à true quand Paddle est validé (onboarding terminé)
+      if (PADDLE_ACTIF && window.Paddle && window.Paddle.Checkout) {
         try {
           window.Paddle.Checkout.open({
             items: [{ priceId: 'pri_01m1c491gprh97sad2zw0v9tm8', quantity: 1 }],
