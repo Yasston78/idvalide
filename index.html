@@ -146,6 +146,12 @@
         <div class="msg ok" id="msgOK">✅ Photo conforme ! Votre planche 35×45 est prête :</div>
         <button class="btn" id="btnDownload" style="background:#0E5A4A;color:#fff;box-shadow:0 4px 14px rgba(14,90,74,.3)">⬇️ Télécharger ma photo — Gratuit 🎁</button>
         <div id="dlHint" style="display:none;text-align:center;font-size:14px;font-weight:700;margin:6px auto 0;max-width:340px"></div>
+        <div id="avisPrompt" style="display:none;background:#FDF6EC;border:1px solid #F0DFC0;border-radius:14px;padding:14px;margin:10px auto 0;max-width:340px;text-align:center">
+          <div style="font-weight:800;font-size:15px;color:#14302A;margin-bottom:2px">Votre photo vous convient ?</div>
+          <div style="font-size:12px;color:#5C6E68;margin-bottom:10px">⭐ Votre retour aide les prochains visiteurs</div>
+          <button class="btn" id="btnAvisOui" style="padding:10px 18px;font-size:14px;margin:0 4px">⭐ Oui, parfait !</button>
+          <button class="btn ghost" id="btnAvisNon" style="padding:10px 18px;font-size:14px;margin:0 4px">💬 À améliorer</button>
+        </div>
         <div id="checksResult" style="text-align:left;margin:10px auto 0;max-width:340px"></div>
         <button class="btn ghost" id="btnAjuster2" style="margin-top:10px">🎯 Ajuster le cadrage</button>
         <button class="btn ghost" id="btnOuvrir" style="margin-top:6px">🔍 Ouvrir la planche en grand</button>
@@ -1048,6 +1054,7 @@ document.getElementById('btnRetry').onclick = () => { setEtape(1); startCamera()
         await telechargerPlanche();
         evt('download_ok');
         afficherHint("✅ Téléchargement lancé ! Sinon : bouton « Ouvrir en grand » → appui long.", true);
+        proposerAvis();
       } catch (err) {
         evt('download_err');
         ouvrirEnGrand();
@@ -1060,6 +1067,31 @@ document.getElementById('btnRetry').onclick = () => { setEtape(1); startCamera()
     };
     document.getElementById('btnOuvrir').onclick = () => { ouvrirEnGrand(); };
     document.getElementById('btnAjuster2').onclick = () => { afficherAjuster(); };
+
+    // ─── Invite d'avis après téléchargement réussi (1 seule fois par navigateur) ───
+    function proposerAvis() {
+      try { if (localStorage.getItem('idv_avis_fait') === '1') return; } catch (e) {}
+      const ap = document.getElementById('avisPrompt');
+      if (!ap) return;
+      setTimeout(() => { ap.style.display = 'block'; evt('avis_prompt'); }, 1600);
+    }
+    document.getElementById('btnAvisOui').onclick = () => {
+      evt('avis_positif');
+      try { localStorage.setItem('idv_avis_fait', '1'); } catch (e) {}
+      const ap = document.getElementById('avisPrompt');
+      ap.innerHTML = '<div style="font-weight:800;font-size:15px;color:#0E5A4A;padding:6px 0">🙏 Merci ! Bonne chance pour votre démarche !</div>';
+      setTimeout(() => { ap.style.display = 'none'; }, 4500);
+    };
+    document.getElementById('btnAvisNon').onclick = () => {
+      evt('avis_ameliorer');
+      try { localStorage.setItem('idv_avis_fait', '1'); } catch (e) {}
+      const ap = document.getElementById('avisPrompt');
+      ap.innerHTML = '<div style="font-weight:800;font-size:15px;color:#0E5A4A;padding:6px 0">💬 Dites-nous quoi améliorer ci-dessous 🙏</div>';
+      try { document.getElementById('avis').scrollIntoView({ behavior: 'smooth' }); } catch (e) {}
+      const ta = document.querySelector('#avis textarea');
+      if (ta) setTimeout(() => ta.focus(), 900);
+      setTimeout(() => { ap.style.display = 'none'; }, 6000);
+    };
 
     // ─── Premium ───
     const modal = document.getElementById('modalPremium');
