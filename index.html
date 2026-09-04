@@ -324,7 +324,7 @@
     }
     // ─── Paiement Stripe (préparé — OFF pendant l'offre gratuite de lancement) ───
     const PAIEMENT = {
-      mode: 'stripe', // 'gratuit' = offre lancement · 'stripe' = paywall actif (TEST PRIVÉ en cours)
+      mode: 'gratuit', // 'gratuit' = offre lancement (paywall Stripe EN SOMMEIL, armé pour le jour J) · 'stripe' = paywall actif
       stripeLink: 'https://buy.stripe.com/dRm14o0lbdoX4hK5602Fa00', // Payment Link LIVE (2,99 €) — actif quand mode='stripe'
     };
     document.getElementById('btnPayer').onclick = async () => {
