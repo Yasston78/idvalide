@@ -325,7 +325,7 @@
     // ─── Paiement Stripe (préparé — OFF pendant l'offre gratuite de lancement) ───
     const PAIEMENT = {
       mode: 'gratuit', // 'gratuit' = offre lancement (défaut) · 'stripe' = paywall actif
-      stripeLink: 'https://buy.stripe.com/test_8x2eV61vkdSEfFk7mAeQM00', // Payment Link (test). Au lancement : remplacer par le lien LIVE
+      stripeLink: 'https://buy.stripe.com/dRm14o0lbdoX4hK5602Fa00', // Payment Link LIVE (2,99 €) — actif quand mode='stripe'
     };
     document.getElementById('btnPayer').onclick = async () => {
       evt('pay');
