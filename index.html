@@ -381,6 +381,30 @@
         if (d) d.innerHTML = '<div class="check bad">⚠️ Erreur : ' + m + '</div>';
       } catch (e) {}
     };
+    // ─── Remontée d'erreurs JS vers le serveur (prod) — rate-limitée, invisible ───
+    (function () {
+      let dernier = 0, nb = 0;
+      function remonter(texte) {
+        try {
+          const t = Date.now();
+          if (t - dernier < 5000 || nb >= 25) return; // max 1 / 5 s, 25 par page
+          dernier = t; nb++;
+          const msg = String(texte || '').slice(0, 150);
+          if (!msg) return;
+          const url = 'https://stats.idvalide.fr/event?e=js_error&msg=' + encodeURIComponent(msg) + '&ref=err';
+          if (navigator.sendBeacon) navigator.sendBeacon(url);
+          else fetch(url, { method: 'POST', mode: 'no-cors' });
+        } catch (e2) {}
+      }
+      window.addEventListener('error', function (e) {
+        remonter(e && e.message ? e.message : 'erreur inconnue');
+      });
+      window.addEventListener('unhandledrejection', function (e) {
+        let r = (e && e.reason) || '';
+        if (r && r.message) r = r.message;
+        remonter('promesse: ' + String(r).slice(0, 120));
+      });
+    })();
 
     function setEtape(n) {
       document.getElementById('s1').classList.toggle('active', n === 1);
