@@ -971,7 +971,10 @@ document.getElementById('btnRetry').onclick = () => { setEtape(1); startCamera()
         try {
           const planche = document.getElementById('planche');
           const a = document.createElement('a');
-          a.download = 'photo-identite-ANTS-35x45.png';
+          // Nom unique (date + aléa) : Chrome ne demande plus « Télécharger de nouveau ? »
+          const d = new Date();
+          const stamp = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0') + '-' + String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0') + String(d.getSeconds()).padStart(2, '0');
+          a.download = 'photo-identite-ANTS-35x45-' + stamp + '.png';
           const lancer = (url) => {
             a.href = url;
             document.body.appendChild(a);
