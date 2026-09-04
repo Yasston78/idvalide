@@ -951,7 +951,21 @@ document.getElementById('btnRetry').onclick = () => { setEtape(1); startCamera()
       document.getElementById('msgOK').style.display = 'block';
     };
 
+    function estIOS() {
+      try {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+               (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      } catch (e) { return false; }
+    }
+
     function telechargerPlanche() {
+      // iOS Safari demande une confirmation quand le clic n'est plus dans le geste
+      // utilisateur (génération 2-5 s) → on bascule sur l'appui long, sans popup.
+      if (estIOS()) {
+        ouvrirEnGrand();
+        afficherHint("👆 Appuie long sur la photo → « Enregistrer l'image » (haute résolution)", true);
+        return Promise.resolve();
+      }
       // Blob URL (léger) plutôt que dataURL (8-15 Mo en base64) : fiable sur mobile
       return new Promise((resolve, reject) => {
         try {
