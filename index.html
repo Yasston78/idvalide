@@ -167,7 +167,7 @@
             <div style="padding:4px 0">✅ <b>Sans pub</b></div>
           </div>
           <button class="btn" id="btnPayer" style="width:100%">Payer 2,99 € et télécharger</button>
-          <div style="font-size:12px;color:#8B9A94;margin-top:10px">Paiement sécurisé PayPal · Carte bancaire acceptée (Visa, Mastercard), sans compte · TVA incluse · Sans abonnement</div>
+          <div style="font-size:12px;color:#8B9A94;margin-top:10px">Paiement sécurisé par carte bancaire (Visa, Mastercard) · Sans compte · Paiement unique · TVA incluse</div>
           <div style="font-size:12px;color:#8B9A94;margin-top:4px">Refusée par l'ANTS ? <b>Remboursée intégralement</b>.</div>
           <button class="btn ghost" id="btnFermer" style="margin-top:10px;width:100%">Annuler</button>
         </div>
@@ -245,7 +245,6 @@
     <p style="margin-top:8px">© 2026 IDValide — idvalide.fr</p>
   </footer>
 
-  <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
   <script src="vendor/vision_bundle.js"></script>
   <script>
     // ─── Stats (compteur maison — ne bloque JAMAIS l'utilisateur) ───
@@ -323,42 +322,35 @@
       document.getElementById('premiumBlock').innerHTML = '<div style="background:#E9F3EF;color:#0E5A4A;border-radius:10px;padding:12px;margin:10px 0;font-weight:700">✅ Paiement confirmé — téléchargement débloqué !</div>';
       telechargerPlanche();
     }
+    // ─── Paiement Stripe (préparé — OFF pendant l'offre gratuite de lancement) ───
+    const PAIEMENT = {
+      mode: 'gratuit', // 'gratuit' = offre lancement (défaut) · 'stripe' = paywall actif
+      stripeLink: 'https://buy.stripe.com/test_8x2eV61vkdSEfFk7mAeQM00', // Payment Link (test). Au lancement : remplacer par le lien LIVE
+    };
     document.getElementById('btnPayer').onclick = async () => {
       evt('pay');
-      const PADDLE_ACTIF = false; // ← passer à true quand Paddle est validé (onboarding terminé)
-      if (PADDLE_ACTIF && window.Paddle && window.Paddle.Checkout) {
-        try {
-          window.Paddle.Checkout.open({
-            items: [{ priceId: 'pri_01m1c491gprh97sad2zw0v9tm8', quantity: 1 }],
-            settings: { displayMode: 'overlay', theme: 'light' },
-            eventCallback: function (event) {
-              if (event && event.name === 'checkout.completed') {
-                debloquerPremium();
-              }
-            },
-          });
-          return;
-        } catch (e) {}
+      if (PAIEMENT.mode === 'stripe') {
+        location.href = PAIEMENT.stripeLink; // paiement Stripe → retour sur /?achat=ok
+        return;
       }
-      // Secours : PayPal (sans redirection douloureuse si possible)
-      try {
-        const r = await fetch('https://stats.idvalide.fr/paypal/create', { method: 'POST' });
-        const d = await r.json();
-        if (d.approve) {
-          location.href = d.approve;
-        } else {
-          alert('Impossible de créer le paiement (' + (d.err || 'erreur') + '). Réessayez dans un instant 😉');
-        }
-      } catch (e) {
-        alert('Le paiement est momentanément indisponible (réseau). Réessayez dans un instant 😉');
-      }
+      // Offre gratuite de lancement : on débloque directement (aucun paiement)
+      debloquerPremium();
     };
-    // Setup Paddle (paiement par carte, sans compte)
-    if (window.Paddle) {
-      try {
-        window.Paddle.Setup({ token: 'live_7643b30290221751f09a5fe2df4', environment: 'live' });
-      } catch (e) {}
-    }
+    // Retour Stripe (?achat=ok) : débloque le téléchargement pour cette session
+    (function () {
+      const p = new URLSearchParams(location.search);
+      if (p.get('achat') === 'ok') {
+        try { localStorage.setItem('idvalide_premium', '1'); } catch (e) {}
+        premiumOk = true;
+        evt('pay_ok');
+        const b = document.createElement('div');
+        b.textContent = '✅ Paiement confirmé — votre téléchargement est débloqué !';
+        b.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:9998;background:#0E5A4A;color:#fff;font-weight:800;font-size:15px;padding:13px 22px;border-radius:30px;box-shadow:0 6px 20px rgba(0,0,0,.25)';
+        document.body.appendChild(b);
+        setTimeout(() => b.remove(), 7000);
+        setTimeout(() => history.replaceState(null, '', location.pathname), 600);
+      }
+    })();
     // ─── Retour PayPal (paiement réussi) : débloque et télécharge ───
     (function () {
       const p = new URLSearchParams(location.search);
@@ -949,6 +941,12 @@ document.getElementById('btnRetry').onclick = () => { setEtape(1); startCamera()
     let dlBusy = false;
     document.getElementById('btnDownload').onclick = async () => {
       if (dlBusy) return;
+      // Paywall Stripe actif ? On demande le paiement avant de débloquer (dormant : mode 'gratuit')
+      if (PAIEMENT.mode === 'stripe' && !premiumOk) {
+        evt('paywall');
+        document.getElementById('modalPremium').style.display = 'flex';
+        return;
+      }
       dlBusy = true;
       evt('download'); // intention de téléchargement
       // Offre de lancement : téléchargement gratuit (paiement réactivé plus tard)
