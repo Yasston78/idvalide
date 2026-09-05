@@ -313,7 +313,26 @@
           const sw = rw * scale, sh = rh * scale;
           const sx = region[0] + (rw - pw / scale) / 2;
           const sy = region[1] + (rh - ph / scale) / 2;
-          ctx.drawImage(source, sx, sy, pw / scale, ph / scale, x, y, pw, ph);
+          const RA = regionAngle || 0;
+          if (RA) {
+            // redressement : on pivote autour du centre du visage (+ léger sur-échantillon pour couvrir les coins)
+            const cxR = region[0] + rw / 2, cyR = region[1] + rh / 2;
+            const os = Math.abs(Math.cos(RA)) + Math.abs(Math.sin(RA));
+            const sw2 = rw * scale * os, sh2 = rh * scale * os;
+            const sx2 = cxR + (rw - rw * os) / 2 - (pw / scale) / 2;
+            const sy2 = cyR + (rh - rh * os) / 2 - (ph / scale) / 2;
+            if (sx2 >= 0 && sy2 >= 0 && sx2 + sw2 <= source.width && sy2 + sh2 <= source.height) {
+              ctx.save();
+              ctx.translate(x + pw / 2, y + ph / 2);
+              ctx.rotate(RA);
+              ctx.drawImage(source, sx2, sy2, sw2, sh2, -(pw * os) / 2, -(ph * os) / 2, pw * os, ph * os);
+              ctx.restore();
+            } else {
+              ctx.drawImage(source, sx, sy, pw / scale, ph / scale, x, y, pw, ph);
+            }
+          } else {
+            ctx.drawImage(source, sx, sy, pw / scale, ph / scale, x, y, pw, ph);
+          }
         } else {
           ctx.drawImage(src, 0, 0, src.width, src.height, x, y, pw, ph);
         }
@@ -744,6 +763,7 @@
         // Position réelle des yeux ET du menton (landmarks) si dispo — sinon estimation
         let eyesY = bb.originY + fh * 0.42;
         let chinY = bb.originY + fh;
+        let angE = 0;   // inclinaison de la ligne des yeux (radians, repère image)
         try {
           if (faceLandmarker) {
             const lm = faceLandmarker.detect(canvas);
@@ -752,10 +772,13 @@
               if (p[468] && p[473] && p[152]) {
                 eyesY = ((p[468].y + p[473].y) / 2) * H0;
                 chinY = p[152].y * H0;
+                angE = Math.atan2((p[473].y - p[468].y) * H0, (p[473].x - p[468].x) * W0);
               }
             }
           }
         } catch (e) {}
+        // redressement auto si la tête est penchée de 1,5° à 9° (sinon on laisse tel quel)
+        regionAngle = (Math.abs(angE) > 0.026 && Math.abs(angE) < 0.16) ? -angE : 0;
         // Yeux ≈ milieu de la tête → sommet du crâne = yeux − (menton − yeux) ; on garde la tête ENTIÈRE (cheveux compris)
         const dYM = Math.max(chinY - eyesY, fh * 0.45);
         const cH = (2 * dYM) / 0.72;      // tête = 72 % du cadre → marge haut 8 %, menton à 80 %
@@ -858,6 +881,7 @@ document.getElementById('btnRetry').onclick = () => { setEtape(1); startCamera()
     // ─── Ajustement manuel du cadrage (ovale glissable) ───
     let photoOriginale = null;
     let regionAjust = null;
+    let regionAngle = 0;   // redressement auto (radians) : tête penchée → yeux alignés à l'horizontale
     let ovale = { cx: 0.5, cy: 0.45, w: 0.4 };
     let drag = null;
 
@@ -931,6 +955,7 @@ document.getElementById('btnRetry').onclick = () => { setEtape(1); startCamera()
       let x0 = Math.max(0, Math.min(Math.round(cx - cW / 2), W - cW));
       let y0 = Math.max(0, Math.min(Math.round(cy - cH * 0.45), H - cH));
       regionAjust = [x0, y0, cW, cH];
+      regionAngle = 0; // cadrage manuel : l'utilisateur a pris la main, pas de rotation auto
       // recadrer l'aperçu puis afficher DIRECTEMENT la planche finale
       canvas.width = Math.round(cW); canvas.height = Math.round(cH);
       canvas.getContext('2d').drawImage(photoOriginale, x0, y0, cW, cH, 0, 0, canvas.width, canvas.height);
