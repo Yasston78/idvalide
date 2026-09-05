@@ -291,11 +291,12 @@
             const bb = det.detections[0].boundingBox;
             const fh = bb.height, fw = bb.width;
             const cx = bb.originX + fw / 2;
-            const eyesY = bb.originY + fh * 0.30;   // ligne des yeux (30 % du boîte visage)
-            const cH = fh / 0.65;              // visage = 65 % de la hauteur du cadre
-            const cW = cH * (35 / 45);         // ratio officiel 35×45
+            // Tête entière (cheveux compris) : yeux ≈ 42 % de la boîte, sommet ≈ 0,29 boîte au-dessus
+            const dYM = fh * 0.58;
+            const cH = (2 * dYM) / 0.72;
+            const cW = cH * (35 / 45);
             let x0 = Math.round(cx - cW / 2);
-            let y0 = Math.round(eyesY - cH * 0.30); // yeux à 70 % du bas (norme NF Z 43-001)
+            let y0 = Math.round(bb.originY + fh * 0.42 - dYM - cH * 0.08);
             x0 = Math.max(0, Math.min(x0, src.width - cW));
             y0 = Math.max(0, Math.min(y0, src.height - cH));
             region = [x0, y0, cW, cH];
@@ -740,21 +741,27 @@
         const W0 = canvas.width, H0 = canvas.height;
         const fh = bb.height, fw = bb.width;
         const cx = bb.originX + fw / 2;
-        // Position réelle des yeux (landmarks) si dispo — sinon estimation fiable
-        let eyesY = bb.originY + fh * 0.38;
+        // Position réelle des yeux ET du menton (landmarks) si dispo — sinon estimation
+        let eyesY = bb.originY + fh * 0.42;
+        let chinY = bb.originY + fh;
         try {
           if (faceLandmarker) {
             const lm = faceLandmarker.detect(canvas);
             if (lm.faceLandmarks && lm.faceLandmarks.length) {
               const p = lm.faceLandmarks[0];
-              if (p[468] && p[473]) eyesY = ((p[468].y + p[473].y) / 2) * H0;
+              if (p[468] && p[473] && p[152]) {
+                eyesY = ((p[468].y + p[473].y) / 2) * H0;
+                chinY = p[152].y * H0;
+              }
             }
           }
         } catch (e) {}
-        const cH = fh / 0.65;
+        // Yeux ≈ milieu de la tête → sommet du crâne = yeux − (menton − yeux) ; on garde la tête ENTIÈRE (cheveux compris)
+        const dYM = Math.max(chinY - eyesY, fh * 0.45);
+        const cH = (2 * dYM) / 0.72;      // tête = 72 % du cadre → marge haut 8 %, menton à 80 %
         const cW = cH * (35 / 45);
         let x0 = Math.round(cx - cW / 2);
-        let y0 = Math.round(eyesY - cH * 0.32);
+        let y0 = Math.round(eyesY - dYM - cH * 0.08);
         x0 = Math.max(0, Math.min(x0, W0 - cW));
         y0 = Math.max(0, Math.min(y0, H0 - cH));
         regionAjust = [x0, y0, cW, cH];
