@@ -52,7 +52,9 @@
     .steps { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
     .step { background: #F1EFE8; border-radius: 30px; padding: 7px 16px; font-size: 12px; font-weight: 800; color: #6B7A74; }
     .step.active { background: #0E5A4A; color: #fff; }
-    video, canvas { width: 100%; max-width: 340px; border-radius: 16px; background: #000; display: block; margin: 0 auto; }
+    video { aspect-ratio: 3 / 4; object-fit: contain; max-width: 300px; }
+    canvas { width: 100%; max-width: 340px; border-radius: 16px; background: #000; display: block; margin: 0 auto; }
+    #etapePhoto > div:first-child { max-width: 300px !important; }
     .btn { display: inline-block; background: #E8A33D; color: #14302A; font-size: 16px; font-weight: 900; border: none; border-radius: 14px; padding: 15px 28px; cursor: pointer; margin: 8px 4px; box-shadow: 0 4px 14px rgba(232,163,61,.35); }
     .btn.ghost { background: #EFF0EA; color: #14302A; box-shadow: none; }
     .btn:disabled { opacity: .5; cursor: wait; }
@@ -520,7 +522,7 @@
         if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
           throw new Error('https');
         }
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 1280, height: 720 }, audio: false });
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 720, height: 1280, aspectRatio: 0.75 }, audio: false });
         video.srcObject = stream;
         await video.play();
         document.getElementById('guide').style.display = 'block';
