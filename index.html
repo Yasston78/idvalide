@@ -259,9 +259,10 @@
       try { fetch(STATS_URL + '?type=' + type, { method: 'POST', mode: 'no-cors' }); } catch (e) {}
     }
     function evt(e) {
-      let ref = '';
-      try { ref = document.referrer || ''; } catch (err) {}
-      const src = ref.includes('tiktok') ? 'tiktok' : ref.includes('instagram') ? 'instagram' : ref.includes('facebook') ? 'facebook' : ref.includes('google') ? 'google' : ref ? 'autre' : 'direct';
+      let ref = '', utm = '';
+      try { ref = document.referrer || ''; utm = new URLSearchParams(location.search).get('utm_source') || ''; } catch (err) {}
+      const raw = (utm || ref).toLowerCase();
+      const src = raw.includes('tiktok') ? 'tiktok' : raw.includes('instagram') ? 'instagram' : raw.includes('facebook') ? 'facebook' : raw.includes('google') ? 'google' : raw ? 'autre' : 'direct';
       try { fetch('https://stats.idvalide.fr/event?e=' + encodeURIComponent(e) + '&ref=' + src, { method: 'POST', mode: 'no-cors' }); } catch (err) {}
     }
     hit('visit');
