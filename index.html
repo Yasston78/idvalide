@@ -316,7 +316,9 @@
       // clamp aux limites de l'image en conservant le ratio (visage proche d'un bord / zoom serré)
       const scaleDown = Math.min(W0 / cW, H0 / cH, 1);
       cW *= scaleDown; cH *= scaleDown;
-      let x0 = Math.round(eyesX - cW / 2);
+      // En caméra, le guide fixe impose le centre horizontal. En import, on suit les yeux.
+      const cropCenterX = sourceCamera ? W0 / 2 : eyesX;
+      let x0 = Math.round(cropCenterX - cW / 2);
       let y0 = Math.round(eyesY - dYM - cH * 0.08);
       x0 = Math.max(0, Math.min(x0, Math.max(0, W0 - cW)));
       y0 = Math.max(0, Math.min(y0, Math.max(0, H0 - cH)));
@@ -515,6 +517,7 @@
     })();
     // ─── État ───
     let video, canvas, faceDetector = null;
+    let sourceCamera = false; // caméra : crop centré sur le guide fixe ; import : centre des yeux
     let photoData = null; // ImageData courant
     let detectionOk = false;
     const checksEl = document.getElementById('checks');
@@ -715,6 +718,7 @@
     }
 
     document.getElementById('btnSelfie').onclick = async () => {
+      sourceCamera = true;
       evt('click_selfie');
       if (!video || video.readyState < 2) return alert('Caméra pas prête — utilisez "Choisir une photo"');
       const w = video.videoWidth, h = video.videoHeight;
@@ -734,6 +738,7 @@
       const file = e.target.files[0];
       if (!file) return;
       evt('photo_selected');
+      sourceCamera = false;
       async function dessinerSource(bmp, w, h) {
         canvas = document.getElementById('canvas');
         const maxW = 1280;
