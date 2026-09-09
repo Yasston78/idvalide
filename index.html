@@ -606,7 +606,7 @@
         if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
           throw new Error('https');
         }
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 720, height: 1280, aspectRatio: 0.75 }, audio: false });
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 720, height: 960, aspectRatio: 0.75 }, audio: false });
         video.srcObject = stream;
         await video.play();
         document.getElementById('guide').style.display = 'block';
