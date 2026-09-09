@@ -274,6 +274,92 @@
     let premiumOk = false;
     try { premiumOk = localStorage.getItem('idvalide_premium') === '1'; } catch (e) {}
 
+    // ─── Mode debug cadrage : passer à true pour voir bbox/yeux/crop superposés ───
+    const DEBUG_CROP = false;
+
+    // ─── Calcul UNIQUE du cadrage automatique (ratio 35/45, centré sur les yeux) ───
+    // Utilisé par afficherResultat() ET par le filet de sécurité de genererPlanche(),
+    // pour ne jamais avoir deux logiques de cadrage différentes qui divergent.
+    function calculerCropAuto(det, srcCanvas) {
+      const bb = det && det.detections && det.detections[0] ? det.detections[0].boundingBox : null;
+      if (!bb) return null;
+      const W0 = srcCanvas.width, H0 = srcCanvas.height;
+      const fh = bb.height, fw = bb.width;
+      let eyesX = bb.originX + fw / 2;
+      let eyesY = bb.originY + fh * 0.42;
+      let chinY = bb.originY + fh;
+      let angE = 0;
+      try {
+        if (faceLandmarker) {
+          const lm = faceLandmarker.detect(srcCanvas);
+          if (lm.faceLandmarks && lm.faceLandmarks.length) {
+            const p = lm.faceLandmarks[0];
+            if (p[468] && p[473] && p[152]) {
+              eyesX = ((p[468].x + p[473].x) / 2) * W0;
+              eyesY = ((p[468].y + p[473].y) / 2) * H0;
+              chinY = p[152].y * H0;
+              angE = Math.atan2((p[473].y - p[468].y) * H0, (p[473].x - p[468].x) * W0);
+            }
+          }
+        }
+      } catch (e) {}
+      const angle = (Math.abs(angE) > 0.026 && Math.abs(angE) < 0.16) ? -angE : 0;
+      const targetRatio = 35 / 45;
+      const dYM = Math.max(chinY - eyesY, fh * 0.45);
+      const cH0 = (2 * dYM) / 0.72; // tête entière (cheveux compris), marge haut ≈ 8 %
+      // Largeur mini pour couvrir oreilles/cheveux — mais TOUJOURS au ratio 35/45 exact :
+      // si elle dépasse ce que donnerait cH0, on élargit cH en conséquence (un seul crop,
+      // jamais un crop libre suivi d'un forçage de ratio qui recentre ailleurs).
+      const cWmin = fw * 1.6;
+      let cW = Math.max(cH0 * targetRatio, cWmin);
+      let cH = cW / targetRatio;
+      // clamp aux limites de l'image en conservant le ratio (visage proche d'un bord / zoom serré)
+      const scaleDown = Math.min(W0 / cW, H0 / cH, 1);
+      cW *= scaleDown; cH *= scaleDown;
+      let x0 = Math.round(eyesX - cW / 2);
+      let y0 = Math.round(eyesY - dYM - cH * 0.08);
+      x0 = Math.max(0, Math.min(x0, Math.max(0, W0 - cW)));
+      y0 = Math.max(0, Math.min(y0, Math.max(0, H0 - cH)));
+      return { region: [x0, y0, cW, cH], angle, eyesX, eyesY, chinY, bb };
+    }
+
+    // ─── Overlay de debug : bbox (rouge), centre des yeux (vert), crop final (jaune/bleu) ───
+    function afficherDebugCrop(srcCanvas, calc) {
+      if (!DEBUG_CROP || !calc) return;
+      try {
+        const dbg = document.createElement('canvas');
+        dbg.width = srcCanvas.width; dbg.height = srcCanvas.height;
+        const dctx = dbg.getContext('2d');
+        dctx.drawImage(srcCanvas, 0, 0);
+        const { bb, eyesX, eyesY, region } = calc;
+        if (bb) { dctx.strokeStyle = 'red'; dctx.lineWidth = 3; dctx.strokeRect(bb.originX, bb.originY, bb.width, bb.height); }
+        dctx.strokeStyle = 'lime'; dctx.fillStyle = 'lime'; dctx.lineWidth = 2;
+        dctx.beginPath(); dctx.arc(eyesX, eyesY, 6, 0, Math.PI * 2); dctx.fill();
+        dctx.beginPath(); dctx.moveTo(eyesX, 0); dctx.lineTo(eyesX, dbg.height); dctx.stroke();
+        const [rx, ry, rw, rh] = region;
+        dctx.strokeStyle = 'yellow'; dctx.lineWidth = 3; dctx.strokeRect(rx, ry, rw, rh);
+        dctx.strokeStyle = 'blue'; dctx.fillStyle = 'blue';
+        dctx.beginPath(); dctx.arc(rx + rw / 2, ry + rh / 2, 6, 0, Math.PI * 2); dctx.fill();
+        let panel = document.getElementById('debugCropPanel');
+        if (!panel) {
+          panel = document.createElement('div');
+          panel.id = 'debugCropPanel';
+          panel.style.cssText = 'position:fixed;bottom:10px;left:10px;z-index:9999;background:#000;padding:6px;border-radius:8px;max-width:46vw';
+          const closeBtn = document.createElement('button');
+          closeBtn.textContent = '✕';
+          closeBtn.style.cssText = 'position:absolute;top:-10px;right:-10px;background:#B3261E;color:#fff;border:none;border-radius:50%;width:22px;height:22px;cursor:pointer';
+          closeBtn.onclick = () => panel.remove();
+          panel.appendChild(closeBtn);
+          document.body.appendChild(panel);
+        }
+        panel.querySelectorAll('img').forEach(im => im.remove());
+        const img = document.createElement('img');
+        img.src = dbg.toDataURL('image/jpeg', 0.85);
+        img.style.cssText = 'max-width:100%;display:block;border-radius:6px';
+        panel.appendChild(img);
+      } catch (e) {}
+    }
+
     function genererPlanche(res) {
       const planche = document.getElementById('planche');
       planche.width = res ? 2400 : 1024;
@@ -281,8 +367,14 @@
       const ctx = planche.getContext('2d');
       ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, planche.width, planche.height);
       const m = planche.width * 0.033;
-      const pw = (planche.width - m * 3) / 2;
-      const ph = (planche.height - m * 3) / 2;
+      const cellMaxW = (planche.width - m * 3) / 2;
+      const cellMaxH = (planche.height - m * 3) / 2;
+      const targetRatio = 35 / 45;
+      // La cellule de la planche doit être EXACTEMENT au ratio 35/45 (sinon le "cover"
+      // ci-dessous recadre une deuxième fois, de façon non centrée sur les yeux).
+      let pw, ph;
+      if (cellMaxW / cellMaxH > targetRatio) { ph = cellMaxH; pw = ph * targetRatio; }
+      else { pw = cellMaxW; ph = pw / targetRatio; }
       const src = canvas;
       // recadrage : cadrage manuel (ajusté) sinon automatique autour du visage
       let region = regionAjust;
@@ -290,25 +382,15 @@
       try {
         if (!region && faceDetector && detectionOk) {
           const det = faceDetector.detect(src);
-          if (det.detections && det.detections.length) {
-            const bb = det.detections[0].boundingBox;
-            const fh = bb.height, fw = bb.width;
-            const cx = bb.originX + fw / 2;
-            // Tête entière (cheveux compris) : yeux ≈ 42 % de la boîte, sommet ≈ 0,29 boîte au-dessus
-            const dYM = fh * 0.58;
-            const cH = (2 * dYM) / 0.72;
-            const cW = cH * (35 / 45);
-            let x0 = Math.round(cx - cW / 2);
-            let y0 = Math.round(bb.originY + fh * 0.42 - dYM - cH * 0.08);
-            x0 = Math.max(0, Math.min(x0, src.width - cW));
-            y0 = Math.max(0, Math.min(y0, src.height - cH));
-            region = [x0, y0, cW, cH];
-          }
+          const calc = calculerCropAuto(det, src);
+          if (calc) { region = calc.region; regionAngle = calc.angle; }
         }
       } catch (e) { region = regionAjust || null; }
       for (let i = 0; i < 4; i++) {
-        const x = m + (i % 2) * (pw + m);
-        const y = m + Math.floor(i / 2) * (ph + m);
+        const cellX = m + (i % 2) * (cellMaxW + m);
+        const cellY = m + Math.floor(i / 2) * (cellMaxH + m);
+        const x = cellX + (cellMaxW - pw) / 2;
+        const y = cellY + (cellMaxH - ph) / 2;
         if (region) {
           // couvrir la cellule avec la région recadrée (sans distorsion)
           const rw = region[2], rh = region[3];
@@ -652,21 +734,30 @@
       const file = e.target.files[0];
       if (!file) return;
       evt('photo_selected');
-      const img = new Image();
-      img.onload = async () => {
+      async function dessinerSource(bmp, w, h) {
         canvas = document.getElementById('canvas');
         const maxW = 1280;
-        const scale = Math.min(1, maxW / img.width);
-        canvas.width = Math.round(img.width * scale);
-        canvas.height = Math.round(img.height * scale);
-        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        const scale = Math.min(1, maxW / w);
+        canvas.width = Math.round(w * scale);
+        canvas.height = Math.round(h * scale);
+        canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
         photoData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
         photoOriginale = document.createElement('canvas');
         photoOriginale.width = canvas.width; photoOriginale.height = canvas.height;
-        photoOriginale.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        photoOriginale.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
         await demarrerRecadrage();
-      };
-      img.src = URL.createObjectURL(file);
+      }
+      try {
+        // createImageBitmap + imageOrientation:'from-image' applique l'EXIF de façon fiable
+        // (plus robuste que <img> seul selon navigateurs/versions).
+        const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+        await dessinerSource(bitmap, bitmap.width, bitmap.height);
+      } catch (err) {
+        // Fallback navigateurs anciens sans support de l'option
+        const img = new Image();
+        img.onload = () => dessinerSource(img, img.width, img.height);
+        img.src = URL.createObjectURL(file);
+      }
     };
 
     // ─── Vérification conformité ───
@@ -760,42 +851,11 @@
         if (!detOrig || !detOrig.detections || !detOrig.detections.length) {
           try { detOrig = await detecterUneFois(canvas); } catch (e) {}
         }
-        const bb = detOrig && detOrig.detections && detOrig.detections[0] ? detOrig.detections[0].boundingBox : null;
-        if (!bb) { afficherAjuster(); return; }
-        const W0 = canvas.width, H0 = canvas.height;
-        const fh = bb.height, fw = bb.width;
-        let cx = bb.originX + fw / 2;
-        let eyesX = cx;
-        // Position réelle des yeux ET du menton (landmarks) si dispo — sinon estimation
-        let eyesY = bb.originY + fh * 0.42;
-        let chinY = bb.originY + fh;
-        let angE = 0;   // inclinaison de la ligne des yeux (radians, repère image)
-        try {
-          if (faceLandmarker) {
-            const lm = faceLandmarker.detect(canvas);
-            if (lm.faceLandmarks && lm.faceLandmarks.length) {
-              const p = lm.faceLandmarks[0];
-              if (p[468] && p[473] && p[152]) {
-                eyesX = ((p[468].x + p[473].x) / 2) * W0;
-                eyesY = ((p[468].y + p[473].y) / 2) * H0;
-                chinY = p[152].y * H0;
-                angE = Math.atan2((p[473].y - p[468].y) * H0, (p[473].x - p[468].x) * W0);
-              }
-            }
-          }
-        } catch (e) {}
-        // redressement auto si la tête est penchée de 1,5° à 9° (sinon on laisse tel quel)
-        regionAngle = (Math.abs(angE) > 0.026 && Math.abs(angE) < 0.16) ? -angE : 0;
-        // Yeux ≈ milieu de la tête → sommet du crâne = yeux − (menton − yeux) ; on garde la tête ENTIÈRE (cheveux compris)
-        const dYM = Math.max(chinY - eyesY, fh * 0.45);
-        const cH = (2 * dYM) / 0.72;      // tête = 72 % du cadre → marge haut 8 %, menton à 80 %
-        // Cadre portrait avec marge latérale : le visage reste centré même dans une photo large.
-        const cW = Math.min(W0, Math.max(cH * (35 / 45), fw * 2.2));
-        let x0 = Math.round(eyesX - cW / 2);
-        let y0 = Math.round(eyesY - dYM - cH * 0.08);
-        x0 = Math.max(0, Math.min(x0, Math.max(0, W0 - cW)));
-        y0 = Math.max(0, Math.min(y0, H0 - cH));
-        regionAjust = [x0, y0, cW, cH];
+        const calc = calculerCropAuto(detOrig, canvas);
+        if (!calc) { afficherAjuster(); return; }
+        regionAjust = calc.region;
+        regionAngle = calc.angle;
+        afficherDebugCrop(canvas, calc);
       }
       try {
         genererPlanche(false);
