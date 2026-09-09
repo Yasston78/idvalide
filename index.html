@@ -764,7 +764,8 @@
         if (!bb) { afficherAjuster(); return; }
         const W0 = canvas.width, H0 = canvas.height;
         const fh = bb.height, fw = bb.width;
-        const cx = bb.originX + fw / 2;
+        let cx = bb.originX + fw / 2;
+        let eyesX = cx;
         // Position réelle des yeux ET du menton (landmarks) si dispo — sinon estimation
         let eyesY = bb.originY + fh * 0.42;
         let chinY = bb.originY + fh;
@@ -775,6 +776,7 @@
             if (lm.faceLandmarks && lm.faceLandmarks.length) {
               const p = lm.faceLandmarks[0];
               if (p[468] && p[473] && p[152]) {
+                eyesX = ((p[468].x + p[473].x) / 2) * W0;
                 eyesY = ((p[468].y + p[473].y) / 2) * H0;
                 chinY = p[152].y * H0;
                 angE = Math.atan2((p[473].y - p[468].y) * H0, (p[473].x - p[468].x) * W0);
@@ -789,7 +791,7 @@
         const cH = (2 * dYM) / 0.72;      // tête = 72 % du cadre → marge haut 8 %, menton à 80 %
         // Cadre portrait avec marge latérale : le visage reste centré même dans une photo large.
         const cW = Math.min(W0, Math.max(cH * (35 / 45), fw * 2.2));
-        let x0 = Math.round(cx - cW / 2);
+        let x0 = Math.round(eyesX - cW / 2);
         let y0 = Math.round(eyesY - dYM - cH * 0.08);
         x0 = Math.max(0, Math.min(x0, Math.max(0, W0 - cW)));
         y0 = Math.max(0, Math.min(y0, H0 - cH));
