@@ -71,14 +71,6 @@
     footer a { color: #8B9A94; margin: 0 8px; }
     @media (max-width: 640px) { h1 { font-size: 29px; } .card { padding: 20px; } }
   </style>
-  <!-- Google Analytics 4 -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-FHR9QKG2QY"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-FHR9QKG2QY');
-  </script>
 </head>
 <body>
   <header>
@@ -256,7 +248,7 @@
   
 
   <footer>
-    <a href="/">Accueil</a><a href="/blog/">Blog</a><a href="/politique-confidentialite.html">Confidentialité</a><a href="/cgu.html">CGU</a>
+    <a href="/">Accueil</a><a href="/blog/">Blog</a><a href="/politique-confidentialite.html">Confidentialité</a><a href="/cgu.html">CGU</a><button type="button" onclick="window.idvGererConsentement&&window.idvGererConsentement()" style="border:0;background:none;color:#8B9A94;margin:0 8px;font:inherit;font-size:12px;cursor:pointer">Gérer les cookies</button>
     <p style="margin-top:8px">© 2026 IDValide — idvalide.fr</p>
   </footer>
 
@@ -1223,6 +1215,46 @@ document.getElementById('btnRetry').onclick = () => { setEtape(1); startCamera()
     const modal = document.getElementById('modalPremium');
     document.getElementById('btnFermer').onclick = () => { modal.style.display = 'none'; };
     modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+  </script>
+
+  <div id="idvConsent" role="dialog" aria-live="polite" aria-label="Choix des cookies" style="display:none;position:fixed;left:14px;right:14px;bottom:14px;z-index:10000;background:#fff;border:1px solid #D8E4DF;border-radius:18px;padding:18px;box-shadow:0 8px 35px rgba(14,48,42,.22);max-width:620px;margin:auto">
+    <div style="font-weight:900;color:#0E5A4A;font-size:16px;margin-bottom:6px">Votre confidentialité compte</div>
+    <div style="font-size:13px;color:#5C6E68;line-height:1.45;margin-bottom:12px">IDValide utilise Google Analytics uniquement pour mesurer les visites et améliorer le site. Vos photos restent toujours sur votre appareil. Vous pouvez accepter ou refuser cette mesure d’audience.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+      <button id="idvConsentRefuse" style="border:0;background:#EFF0EA;color:#14302A;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer">Refuser</button>
+      <button id="idvConsentAccept" style="border:0;background:#0E5A4A;color:#fff;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer">Accepter</button>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const KEY = 'idv_analytics_consent';
+      const ID = 'G-FHR9QKG2QY';
+      const box = document.getElementById('idvConsent');
+      function chargerAnalytics() {
+        if (window.__idvGaLoaded) return;
+        window.__idvGaLoaded = true;
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function(){ dataLayer.push(arguments); };
+        const script = document.createElement('script');
+        script.async = true;
+        script.src = 'https://www.googletagmanager.com/gtag/js?id=' + ID;
+        document.head.appendChild(script);
+        gtag('js', new Date());
+        gtag('config', ID, { anonymize_ip: true });
+      }
+      function fermer(val) {
+        try { localStorage.setItem(KEY, val); } catch (e) {}
+        box.style.display = 'none';
+        if (val === 'accepted') chargerAnalytics();
+      }
+      let choix = null;
+      try { choix = localStorage.getItem(KEY); } catch (e) {}
+      if (choix === 'accepted') chargerAnalytics();
+      else if (!choix) box.style.display = 'block';
+      document.getElementById('idvConsentAccept').onclick = () => fermer('accepted');
+      document.getElementById('idvConsentRefuse').onclick = () => fermer('refused');
+      window.idvGererConsentement = function () { box.style.display = 'block'; };
+    })();
   </script>
 
   <button id="btnAvisFlottant" onclick="document.getElementById('avis').scrollIntoView({behavior:'smooth'});evt('avis_flottant')" style="position:fixed;bottom:18px;right:18px;z-index:999;background:#E8A33D;color:#fff;border:none;border-radius:30px;padding:13px 20px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(232,163,61,.5)">💬 Votre avis</button>
