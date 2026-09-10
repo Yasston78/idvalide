@@ -645,6 +645,16 @@
           const bb = det.detections[0].boundingBox;
           const cy = (bb.originY + bb.height / 2) / tmp.height;
           const faceW = bb.width / tmp.width;
+          let yeuxLiveY = cy;
+          if (faceLandmarker) {
+            try {
+              const lmHeight = faceLandmarker.detect(tmp);
+              if (lmHeight.faceLandmarks && lmHeight.faceLandmarks.length) {
+                const pH = lmHeight.faceLandmarks[0];
+                if (pH[468] && pH[473]) yeuxLiveY = ((pH[468].y + pH[473].y) / 2);
+              }
+            } catch (e) {}
+          }
           let txt, color;
           // inclinaison de la tête : nez vs ligne des oreilles (faceLandmarker)
           let penche = null;
@@ -699,7 +709,8 @@
           }
           if (penche === 'bas') { txt = '⬇️ Tu regardes l\'écran — REGARDE L\'OBJECTIF (le petit point en haut du téléphone)'; color = 'rgba(179,38,30,.95)'; }
           else if (penche === 'haut') { txt = '⬆️ Tête trop relevée — regarde l\'objectif devant toi'; color = 'rgba(232,163,61,.95)'; }
-          else if (cy > 0.55) { txt = '⬇️ Téléphone trop haut — baisse-le à hauteur des yeux (ton visage est trop bas dans le cadre)'; color = 'rgba(179,38,30,.9)'; }
+          else if (yeuxLiveY > 0.52) { txt = '⬇️ Téléphone trop haut — baisse-le légèrement'; color = 'rgba(179,38,30,.9)'; }
+          else if (yeuxLiveY < 0.36) { txt = '⬆️ Téléphone trop bas — monte-le légèrement'; color = 'rgba(232,163,61,.95)'; }
           else if (faceW > 0.80) { txt = '↔️ Recule un peu le téléphone'; color = 'rgba(179,38,30,.9)'; }
           else if (faceW < 0.30) { txt = '↔️ Approche un peu le téléphone'; color = 'rgba(232,163,61,.95)'; }
           else if (fondOk === 'sombre') { txt = '🎨 Fond trop sombre — place-toi devant un mur BLANC, sinon la photo sera refusée'; color = 'rgba(179,38,30,.95)'; }
