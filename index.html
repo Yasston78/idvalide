@@ -29,7 +29,7 @@
     "mainEntity": [
       {"@type": "Question", "name": "Comment faire une photo d'identité conforme ANTS ?", "acceptedAnswer": {"@type": "Answer", "text": "Fond clair et uni, visage centré, expression neutre, tête nue, photo récente de moins de 6 mois au format 35×45 mm. IDValide vérifie ces critères automatiquement et gratuitement."}},
       {"@type": "Question", "name": "Puis-je prendre ma photo d'identité avec mon téléphone ?", "acceptedAnswer": {"@type": "Answer", "text": "Oui : avec IDValide, un simple selfie suffit. La vérification de conformité (fond, cadrage, lumière) est automatique et gratuite, directement dans votre navigateur."}},
-      {"@type": "Question", "name": "Que faire si ma photo d'identité est refusée par l'ANTS ?", "acceptedAnswer": {"@type": "Answer", "text": "Avec IDValide, si votre photo est refusée après achat, elle vous est remboursée intégralement. C'est la garantie IDValide."}},
+      {"@type": "Question", "name": "Que faire si ma photo n’est pas adaptée ?", "acceptedAnswer": {"@type": "Answer", "text": "Vérifiez le fond, le cadrage, l’expression et le format 35×45, puis ajustez votre photo avant le téléchargement."}},
       {"@type": "Question", "name": "Combien coûte une photo d'identité avec IDValide ?", "acceptedAnswer": {"@type": "Answer", "text": "La vérification est gratuite et, pendant l'offre de lancement, le téléchargement de la photo officielle 35×45 haute résolution est également gratuit."}},
       {"@type": "Question", "name": "Ma photo reste-t-elle sur mon téléphone ?", "acceptedAnswer": {"@type": "Answer", "text": "Oui : tout le traitement s'effectue dans votre navigateur, à 100 % en local. Aucune photo n'est envoyée ni stockée sur un serveur."}}
     ]
@@ -156,28 +156,8 @@
         <div id="checksResult" style="text-align:left;margin:10px auto 0;max-width:340px"></div>
         <button class="btn ghost" id="btnAjuster2" style="margin-top:10px">🎯 Ajuster le cadrage</button>
         <button class="btn ghost" id="btnOuvrir" style="margin-top:6px">🔍 Ouvrir la planche en grand</button>
-        <div id="premiumBlock">
-          <div style="font-size:12px;color:#8B9A94;margin-top:6px">Paiement unique · sans abonnement · <b>remboursée si refusée par l'ANTS</b></div>
-        </div>
-        <div class="garantie">🛡️ <b>Garantie ANTS</b> : si votre photo est refusée, elle vous est remboursée intégralement. Votre photo reste sur votre appareil — aucun envoi serveur.</div>
-        <button class="btn ghost" id="btnRetry2">🔄 Nouvelle photo</button>
-      </div>
-
-      <!-- Modal premium -->
-      <div id="modalPremium" style="display:none;position:fixed;inset:0;background:rgba(14,90,74,.55);z-index:50;align-items:center;justify-content:center;padding:20px">
-        <div style="background:#fff;border-radius:22px;padding:28px;max-width:400px;width:100%;text-align:center">
-          <div style="font-size:34px">🪪</div>
-          <h3 style="margin:8px 0;font-size:21px;color:#14302A">Votre photo officielle est prête !</h3>
-          <div style="text-align:left;font-size:14px;color:#5C6E68;margin:14px 0">
-            <div style="padding:4px 0">✅ <b>Planche 35×45 haute résolution</b> (600 dpi, impression nette)</div>
-            <div style="padding:4px 0">✅ <b>Photo garantie conforme</b> — remboursée si refusée</div>
-            <div style="padding:4px 0">✅ <b>Sans pub</b></div>
-          </div>
-          <button class="btn" id="btnPayer" style="width:100%">Payer 2,99 € et télécharger</button>
-          <div style="font-size:12px;color:#8B9A94;margin-top:10px">Paiement sécurisé par carte bancaire (Visa, Mastercard) · Sans compte · Paiement unique · TVA incluse</div>
-          <div style="font-size:12px;color:#8B9A94;margin-top:4px">Refusée par l'ANTS ? <b>Remboursée intégralement</b>.</div>
-          <button class="btn ghost" id="btnFermer" style="margin-top:10px;width:100%">Annuler</button>
-        </div>
+        <div class="garantie">Le traitement reste local dans votre navigateur. Vérifiez toujours les exigences de l’administration destinataire.</div>
+        <button class="btn ghost" id="btnRetry2" style="margin-top:10px">🔄 Nouvelle photo</button>
       </div>
     </div>
   </section>
@@ -232,7 +212,7 @@
     </details>
     <details style="background:#fff;border:1px solid #EFE9DD;border-radius:14px;padding:16px 20px;margin-bottom:10px">
       <summary style="font-weight:800;color:#0E5A4A;font-size:15px;cursor:pointer">Que faire si ma photo d'identité est refusée par l'ANTS ?</summary>
-      <p style="margin-top:10px;font-size:14px;color:#5C6E68">Avec IDValide, si votre photo est refusée après achat, elle vous est remboursée intégralement. C'est la garantie IDValide.</p>
+      <p style="margin-top:10px;font-size:14px;color:#5C6E68">La conformité finale dépend toujours de l’administration destinataire. IDValide aide à préparer la photo selon les critères connus, sans garantir la décision officielle.</p>
     </details>
     <details style="background:#fff;border:1px solid #EFE9DD;border-radius:14px;padding:16px 20px;margin-bottom:10px">
       <summary style="font-weight:800;color:#0E5A4A;font-size:15px;cursor:pointer">Combien coûte une photo d'identité avec IDValide ?</summary>
@@ -257,21 +237,17 @@
     // ─── Stats (compteur maison — ne bloque JAMAIS l'utilisateur) ───
     const STATS_URL = 'https://stats.idvalide.fr/hit';
     function hit(type) {
-      try { fetch(STATS_URL + '?type=' + type, { method: 'POST', mode: 'no-cors' }); } catch (e) {}
+      try { fetch(STATS_URL + '?type=' + type, { method: 'POST', mode: 'no-cors' }).catch(() => {}); } catch (e) {}
     }
     function evt(e) {
       let ref = '', utm = '';
       try { ref = document.referrer || ''; utm = new URLSearchParams(location.search).get('utm_source') || ''; } catch (err) {}
       const raw = (utm || ref).toLowerCase();
       const src = raw.includes('tiktok') ? 'tiktok' : raw.includes('instagram') ? 'instagram' : raw.includes('facebook') ? 'facebook' : raw.includes('google') ? 'google' : raw ? 'autre' : 'direct';
-      try { fetch('https://stats.idvalide.fr/event?e=' + encodeURIComponent(e) + '&ref=' + src, { method: 'POST', mode: 'no-cors' }); } catch (err) {}
+      try { fetch('https://stats.idvalide.fr/event?e=' + encodeURIComponent(e) + '&ref=' + src, { method: 'POST', mode: 'no-cors' }).catch(() => {}); } catch (err) {}
     }
     hit('visit');
     evt('visit');
-
-    // ─── Paiement PayPal (via stats.idvalide.fr) — ne bloque JAMAIS l'outil ───
-    let premiumOk = false;
-    try { premiumOk = localStorage.getItem('idvalide_premium') === '1'; } catch (e) {}
 
     // ─── Mode debug cadrage : passer à true pour voir bbox/yeux/crop superposés ───
     const DEBUG_CROP = false;
@@ -425,95 +401,7 @@
       }
     }
 
-    function debloquerPremium() {
-      hit('premium');
-      try { localStorage.setItem('idvalide_premium', '1'); } catch (err) {}
-      premiumOk = true;
-      genererPlanche(true);
-      document.getElementById('msgOK').textContent = '💎 Merci ! Votre planche haute résolution (600 dpi) :';
-      document.getElementById('premiumBlock').innerHTML = '<div style="background:#E9F3EF;color:#0E5A4A;border-radius:10px;padding:12px;margin:10px 0;font-weight:700">✅ Paiement confirmé — téléchargement débloqué !</div>';
-      telechargerPlanche();
-    }
-    // ─── Paiement Stripe (préparé — OFF pendant l'offre gratuite de lancement) ───
-    const PAIEMENT = {
-      mode: 'gratuit', // 'gratuit' = offre lancement (paywall Stripe EN SOMMEIL, armé pour le jour J) · 'stripe' = paywall actif
-      stripeLink: 'https://buy.stripe.com/dRm14o0lbdoX4hK5602Fa00', // Payment Link LIVE (2,99 €) — actif quand mode='stripe'
-    };
-    document.getElementById('btnPayer').onclick = async () => {
-      evt('pay');
-      if (PAIEMENT.mode === 'stripe') {
-        // Sauvegarde la photo avant la redirection Stripe (retour → téléchargement auto)
-        try {
-          const src = document.getElementById('canvas');
-          if (src && src.width > 50) {
-            const tmp = document.createElement('canvas');
-            const MAX = 1400;
-            const sc = Math.min(1, MAX / Math.max(src.width, src.height));
-            tmp.width = Math.round(src.width * sc); tmp.height = Math.round(src.height * sc);
-            tmp.getContext('2d').drawImage(src, 0, 0, tmp.width, tmp.height);
-            sessionStorage.setItem('idv_photo', tmp.toDataURL('image/jpeg', 0.88));
-            sessionStorage.setItem('idv_region', JSON.stringify(regionAjust));
-          }
-        } catch (e2) {}
-        location.href = PAIEMENT.stripeLink; // paiement Stripe → retour sur /?achat=ok
-        return;
-      }
-      // Offre gratuite de lancement : on débloque directement (aucun paiement)
-      debloquerPremium();
-    };
-    // Retour Stripe (?achat=ok) : débloque le téléchargement pour cette session
-    (function () {
-      const p = new URLSearchParams(location.search);
-      if (p.get('achat') === 'ok') {
-        setTimeout(() => {
-          (async () => {
-            try { localStorage.setItem('idvalide_premium', '1'); } catch (e) {}
-            premiumOk = true;
-            evt('pay_ok');
-            let photo = null;
-            try { photo = sessionStorage.getItem('idv_photo'); } catch (e) {}
-            if (photo) {
-              try {
-                const img = new Image();
-                await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = photo; });
-                const cv = document.getElementById('canvas');
-                cv.width = img.width; cv.height = img.height;
-                cv.getContext('2d').drawImage(img, 0, 0);
-                photoOriginale = document.createElement('canvas');
-                photoOriginale.width = img.width; photoOriginale.height = img.height;
-                photoOriginale.getContext('2d').drawImage(img, 0, 0);
-                try { regionAjust = JSON.parse(sessionStorage.getItem('idv_region') || 'null'); } catch (e) {}
-                try { sessionStorage.removeItem('idv_photo'); sessionStorage.removeItem('idv_region'); } catch (e) {}
-                debloquerPremium(); // planche haute résolution + téléchargement automatique
-                return;
-              } catch (e2) {}
-            }
-            const b = document.createElement('div');
-            b.textContent = '✅ Paiement confirmé — votre téléchargement est débloqué ! Rechargez votre photo pour télécharger.';
-            b.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:9998;background:#0E5A4A;color:#fff;font-weight:800;font-size:15px;padding:13px 22px;border-radius:30px;box-shadow:0 6px 20px rgba(0,0,0,.25)';
-            document.body.appendChild(b);
-            setTimeout(() => b.remove(), 8000);
-          })();
-        }, 250);
-        setTimeout(() => history.replaceState(null, '', location.pathname), 900);
-      }
-    })();
-    // ─── Retour PayPal (paiement réussi) : débloque et télécharge ───
-    (function () {
-      const p = new URLSearchParams(location.search);
-      if (p.get('paypal') === 'ok' && p.get('token')) {
-        fetch('https://stats.idvalide.fr/paypal/capture?token=' + p.get('token'), { method: 'POST' })
-          .then(r => r.json())
-          .then(d => {
-            if (d.status === 'COMPLETED') {
-              debloquerPremium();
-              setTimeout(() => history.replaceState(null, '', location.pathname), 500);
-            } else {
-              alert('Le paiement n\'a pas pu être confirmé (' + d.status + '). Contactez-nous si vous avez été débité.');
-            }
-          });
-      }
-    })();
+    // Le téléchargement reste gratuit pendant l’offre de lancement.
     // ─── État ───
     let video, canvas, faceDetector = null;
     let sourceCamera = false; // caméra : crop centré sur le guide fixe ; import : centre des yeux
@@ -1151,17 +1039,8 @@ document.getElementById('btnRetry').onclick = () => { setEtape(1); startCamera()
     let dlBusy = false;
     document.getElementById('btnDownload').onclick = async () => {
       if (dlBusy) return;
-      // Paywall Stripe actif ? On demande le paiement avant de débloquer (dormant : mode 'gratuit')
-      if (PAIEMENT.mode === 'stripe' && !premiumOk) {
-        evt('paywall');
-        document.getElementById('modalPremium').style.display = 'flex';
-        return;
-      }
       dlBusy = true;
-      evt('download'); // intention de téléchargement
-      // Offre de lancement : téléchargement gratuit (paiement réactivé plus tard)
-      try { localStorage.setItem('idvalide_premium', '1'); } catch (err) {}
-      premiumOk = true;
+      evt('download');
       const btn = document.getElementById('btnDownload');
       const txt0 = btn.textContent;
       btn.disabled = true;
@@ -1211,10 +1090,6 @@ document.getElementById('btnRetry').onclick = () => { setEtape(1); startCamera()
       setTimeout(() => { ap.style.display = 'none'; }, 6000);
     };
 
-    // ─── Premium ───
-    const modal = document.getElementById('modalPremium');
-    document.getElementById('btnFermer').onclick = () => { modal.style.display = 'none'; };
-    modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
   </script>
 
   <div id="idvConsent" role="dialog" aria-live="polite" aria-label="Choix des cookies" style="display:none;position:fixed;left:14px;right:14px;bottom:14px;z-index:10000;background:#fff;border:1px solid #D8E4DF;border-radius:18px;padding:18px;box-shadow:0 8px 35px rgba(14,48,42,.22);max-width:620px;margin:auto">
