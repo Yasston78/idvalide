@@ -499,6 +499,7 @@
         await video.play();
         document.getElementById('guide').style.display = 'block';
         demarrerGuideLive();
+        document.getElementById('btnSelfie').textContent = '📷 Capturer';
         return true;
       } catch (e) {
         stream = null;
@@ -510,7 +511,7 @@
       }
     }
 
-    function stopCamera() { if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } arreterGuideLive(); }
+    function stopCamera() { if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } arreterGuideLive(); const b = document.getElementById('btnSelfie'); if (b) b.textContent = '📸 Prendre un selfie'; }
 
     // ─── Guide en direct : conseils temps réel pendant la caméra ───
     let guideTimer = null;
@@ -618,11 +619,17 @@
     }
 
     document.getElementById('btnSelfie').onclick = async () => {
-      sourceCamera = true;
-      evt('click_selfie');
+      // 1er clic : allumer la caméra (aperçu live + guide) ; 2e clic : capturer
       if (!stream) {
+        sourceCamera = true;
+        evt('click_selfie');
         const cameraReady = await startCamera();
         if (!cameraReady) return;
+        return; // l'utilisateur s'aligne sur les pastilles, puis re-clique « Capturer »
+      }
+      // Attend que le flux soit réellement prêt avant de capturer
+      if (!video || video.readyState < 2) {
+        for (let i = 0; i < 20 && (!video || video.readyState < 2); i++) await new Promise(r => setTimeout(r, 100));
       }
       if (!video || video.readyState < 2) return alert('Caméra pas prête — utilisez "Choisir une photo"');
       const w = video.videoWidth, h = video.videoHeight;
