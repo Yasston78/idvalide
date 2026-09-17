@@ -499,14 +499,16 @@
         await video.play();
         document.getElementById('guide').style.display = 'block';
         demarrerGuideLive();
+        return true;
       } catch (e) {
+        stream = null;
         const btnU = document.getElementById('btnUpload');
         btnU.style.background = '#E8A33D';
         btnU.style.boxShadow = '0 4px 14px rgba(232,163,61,.35)';
-        alert('🔒 La caméra demande le HTTPS (le cadenas) — il se finalise dans quelques minutes. En attendant, utilisez « Choisir une photo » 👇');
+        alert('📸 Autorisez la caméra dans votre navigateur, ou utilisez « Choisir une photo » 👇');
+        return false;
       }
     }
-    startCamera();
 
     function stopCamera() { if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } arreterGuideLive(); }
 
@@ -618,6 +620,10 @@
     document.getElementById('btnSelfie').onclick = async () => {
       sourceCamera = true;
       evt('click_selfie');
+      if (!stream) {
+        const cameraReady = await startCamera();
+        if (!cameraReady) return;
+      }
       if (!video || video.readyState < 2) return alert('Caméra pas prête — utilisez "Choisir une photo"');
       const w = video.videoWidth, h = video.videoHeight;
       canvas = document.getElementById('canvas');
