@@ -37,38 +37,39 @@
   </script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #FAF8F3; color: #14302A; line-height: 1.6; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #FAF8F3; color: #14302A; line-height: 1.6; font-size: 17px; }
+    :focus-visible { outline: 3px solid #E8A33D; outline-offset: 2px; border-radius: 4px; }
     header { background: #FAF8F3; padding: 16px 22px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #EFE9DD; position: sticky; top: 0; z-index: 10; }
     .logo { font-weight: 900; font-size: 19px; letter-spacing: -.3px; color: #0E5A4A; }
     .logo span { background: #0E5A4A; color: #FAF8F3; border-radius: 7px; padding: 2px 7px; margin-left: 3px; }
-    nav a { text-decoration: none; font-size: 13px; font-weight: 800; background: #0E5A4A; color: #fff; padding: 9px 16px; border-radius: 30px; }
+    nav a { text-decoration: none; font-size: 14px; font-weight: 800; background: #0E5A4A; color: #fff; padding: 11px 18px; border-radius: 30px; display: inline-block; min-height: 44px; line-height: 1.4; }
     .hero { text-align: center; padding: 52px 20px 28px; max-width: 700px; margin: 0 auto; }
-    .badge { background: #E9F3EF; color: #0E5A4A; font-size: 13px; font-weight: 800; border-radius: 30px; padding: 7px 16px; display: inline-block; margin-bottom: 16px; }
+    .badge { background: #E9F3EF; color: #0E5A4A; font-size: 14px; font-weight: 800; border-radius: 30px; padding: 8px 18px; display: inline-block; margin-bottom: 16px; }
     h1 { font-size: 36px; line-height: 1.2; margin-bottom: 14px; letter-spacing: -.5px; }
     h1 em { color: #0E5A4A; font-style: normal; border-bottom: 5px solid #E8A33D; }
-    .sous { font-size: 16px; color: #5C6E68; margin-bottom: 26px; }
+    .sous { font-size: 17px; color: #4A5A54; margin-bottom: 26px; }
     .tool { max-width: 640px; margin: 0 auto 50px; padding: 0 20px; }
     .card { background: #fff; border: 1px solid #EFE9DD; border-radius: 22px; padding: 28px; box-shadow: 0 10px 36px rgba(14,90,74,.08); }
     .steps { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
-    .step { background: #F1EFE8; border-radius: 30px; padding: 7px 16px; font-size: 12px; font-weight: 800; color: #6B7A74; }
+    .step { background: #F1EFE8; border-radius: 30px; padding: 8px 17px; font-size: 14px; font-weight: 800; color: #4A5A54; }
     .step.active { background: #0E5A4A; color: #fff; }
     video { aspect-ratio: 3 / 4; object-fit: contain; max-width: 300px; }
     canvas { width: 100%; max-width: 340px; border-radius: 16px; background: #000; display: block; margin: 0 auto; }
     #etapePhoto > div:first-child { max-width: 300px !important; }
-    .btn { display: inline-block; background: #E8A33D; color: #14302A; font-size: 16px; font-weight: 900; border: none; border-radius: 14px; padding: 15px 28px; cursor: pointer; margin: 8px 4px; box-shadow: 0 4px 14px rgba(232,163,61,.35); }
+    .btn { display: inline-block; background: #E8A33D; color: #14302A; font-size: 17px; font-weight: 900; border: none; border-radius: 14px; padding: 16px 28px; cursor: pointer; margin: 8px 4px; box-shadow: 0 4px 14px rgba(232,163,61,.35); min-height: 52px; }
     .btn.ghost { background: #EFF0EA; color: #14302A; box-shadow: none; }
     .btn:disabled { opacity: .5; cursor: wait; }
     .result { text-align: center; display: none; }
     .planche { width: 100%; max-width: 320px; border-radius: 12px; border: 1px solid #ddd; margin: 10px auto; display: block; background: #fff; }
-    .msg { padding: 12px; border-radius: 12px; margin: 10px 0; font-size: 14px; display: none; }
+    .msg { padding: 13px; border-radius: 12px; margin: 10px 0; font-size: 15px; display: none; }
     .msg.ok { background: #E9F3EF; color: #0E5A4A; }
     .msg.err { background: #FDEBEC; color: #B3261E; }
-    .check { font-size: 13px; color: #5C6E68; margin: 6px 0; }
+    .check { font-size: 15px; color: #4A5A54; margin: 6px 0; }
     .check.ok { color: #0E5A4A; font-weight: 600; }
     .check.bad { color: #B3261E; font-weight: 600; }
-    .garantie { background: #FDF6EA; border: 1px solid #E8A33D; border-radius: 14px; padding: 14px 16px; font-size: 13px; margin-top: 14px; color: #7A5B1E; }
-    footer { padding: 26px; text-align: center; font-size: 12px; color: #8B9A94; border-top: 1px solid #EFE9DD; }
-    footer a { color: #8B9A94; margin: 0 8px; }
+    .garantie { background: #FDF6EA; border: 1px solid #E8A33D; border-radius: 14px; padding: 14px 16px; font-size: 15px; margin-top: 14px; color: #6B4E12; }
+    footer { padding: 26px; text-align: center; font-size: 14px; color: #5C6E68; border-top: 1px solid #EFE9DD; }
+    footer a { color: #3D524C; margin: 0 8px; text-decoration: underline; }
     @media (max-width: 640px) { h1 { font-size: 29px; } .card { padding: 20px; } }
   </style>
 </head>
@@ -109,7 +110,7 @@
               <circle id="pastilleG" cx="41" cy="44" r="1.7" fill="#E8A33D" stroke="#fff" stroke-width="0.6"/>
               <circle id="pastilleD" cx="59" cy="44" r="1.7" fill="#E8A33D" stroke="#fff" stroke-width="0.6"/>
             </svg>
-            <div style="position:absolute;left:50%;bottom:4%;transform:translateX(-50%);background:rgba(14,90,74,.88);color:#fff;font-size:12px;font-weight:700;border-radius:20px;padding:6px 14px;white-space:nowrap">👀 Place tes yeux sur les pastilles</div>
+            <div style="position:absolute;left:50%;bottom:4%;transform:translateX(-50%);background:rgba(14,90,74,.92);color:#fff;font-size:14px;font-weight:700;border-radius:20px;padding:8px 16px;white-space:nowrap">👀 Place tes yeux sur les pastilles</div>
           </div>
         </div>
         <div style="text-align:center;margin-top:12px">
@@ -117,7 +118,7 @@
           <button class="btn ghost" id="btnUpload">🖼️ Choisir une photo</button>
           <input type="file" id="fileInput" accept="image/*" hidden>
         </div>
-        <div id="liveGuide" style="display:none;text-align:center;background:rgba(14,90,74,.9);color:#fff;font-size:13px;font-weight:700;border-radius:20px;padding:8px 14px;margin:10px auto 0;max-width:340px">…</div>
+        <div id="liveGuide" style="display:none;text-align:center;background:rgba(14,90,74,.92);color:#fff;font-size:15px;font-weight:700;border-radius:20px;padding:10px 16px;margin:10px auto 0;max-width:340px">…</div>
         <div class="check" style="text-align:center">💡 Place-toi devant un <b>fond BLANC</b> · téléphone à hauteur des yeux · <b>tes yeux sur les pastilles</b> 🟡 · regarde l'objectif (en haut)</div>
       </div>
 
@@ -149,7 +150,7 @@
         <div id="dlHint" style="display:none;text-align:center;font-size:14px;font-weight:700;margin:6px auto 0;max-width:340px"></div>
         <div id="avisPrompt" style="display:none;background:#FDF6EC;border:1px solid #F0DFC0;border-radius:14px;padding:14px;margin:10px auto 0;max-width:340px;text-align:center">
           <div style="font-weight:800;font-size:15px;color:#14302A;margin-bottom:2px">Votre photo vous convient ?</div>
-          <div style="font-size:12px;color:#5C6E68;margin-bottom:10px">⭐ Votre retour aide les prochains visiteurs</div>
+          <div style="font-size:14px;color:#4A5A54;margin-bottom:10px">⭐ Votre retour aide les prochains visiteurs</div>
           <button class="btn" id="btnAvisOui" style="padding:10px 18px;font-size:14px;margin:0 4px">⭐ Oui, parfait !</button>
           <button class="btn ghost" id="btnAvisNon" style="padding:10px 18px;font-size:14px;margin:0 4px">💬 À améliorer</button>
         </div>
@@ -165,7 +166,7 @@
 
 <!-- 💬 Avis des utilisateurs -->
   <section id="avis" style="max-width:760px;margin:0 auto 60px;padding:0 20px">
-    <div style="text-align:center;font-size:12px;font-weight:800;color:#E8A33D;letter-spacing:2px;margin-bottom:6px">VOTRE AVIS NOUS GUIDE</div>
+    <div style="text-align:center;font-size:14px;font-weight:800;color:#B4771B;letter-spacing:2px;margin-bottom:6px">VOTRE AVIS NOUS GUIDE</div>
     <h2 style="font-size:26px;color:#0E5A4A;text-align:center;margin-bottom:8px">💬 Qu'est-ce qu'on améliore pour vous ?</h2>
     <p style="text-align:center;color:#5C6E68;font-size:15px;margin-bottom:22px">Un souci ? Une idée ? <b>On lit tout</b> — votre avis construit le produit.</p>
     <div style="background:#fff;border:1px solid #EFE9DD;border-radius:18px;padding:22px">
@@ -185,16 +186,16 @@
     <h2 style="font-size:26px;color:#0E5A4A;text-align:center;margin-bottom:8px">Les règles officielles ANTS pour une photo valide</h2>
     <p style="text-align:center;color:#5C6E68;font-size:15px;margin-bottom:26px">Les critères vérifiés par l'ANTS (Agence Nationale des Titres Sécurisés) — et contrôlés automatiquement par IDValide :</p>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px" id="gridAnts">
-      <div class="ant" style="background:#fff;border:1px solid #EFE9DD;border-radius:14px;padding:16px"><b style="color:#0E5A4A">✅ Fond clair et uni</b><br><span style="font-size:13px;color:#5C6E68">Blanc ou gris très clair, sans motifs ni ombres</span></div>
-      <div class="ant" style="background:#fff;border:1px solid #EFE9DD;border-radius:14px;padding:16px"><b style="color:#0E5A4A">✅ Visage centré</b><br><span style="font-size:13px;color:#5C6E68">Occupant environ 70 à 80 % de la hauteur de la photo</span></div>
-      <div class="ant" style="background:#fff;border:1px solid #EFE9DD;border-radius:14px;padding:16px"><b style="color:#0E5A4A">✅ Expression neutre</b><br><span style="font-size:13px;color:#5C6E68">Bouche fermée, regard face à l'objectif, yeux ouverts</span></div>
-      <div class="ant" style="background:#fff;border:1px solid #EFE9DD;border-radius:14px;padding:16px"><b style="color:#0E5A4A">✅ Tête nue</b><br><span style="font-size:13px;color:#5C6E68">Chapeau et casquette interdits (sauf motif religieux ou médical)</span></div>
-      <div class="ant" style="background:#fff;border:1px solid #EFE9DD;border-radius:14px;padding:16px"><b style="color:#0E5A4A">✅ Pas de lunettes teintées</b><br><span style="font-size:13px;color:#5C6E68">Ni de reflets ; les montures ne doivent pas cacher les yeux</span></div>
-      <div class="ant" style="background:#fff;border:1px solid #EFE9DD;border-radius:14px;padding:16px"><b style="color:#0E5A4A">✅ Éclairage uniforme</b><br><span style="font-size:13px;color:#5C6E68">Aucune ombre sur le visage ou derrière la tête</span></div>
-      <div class="ant" style="background:#fff;border:1px solid #EFE9DD;border-radius:14px;padding:16px"><b style="color:#0E5A4A">✅ Photo récente</b><br><span style="font-size:13px;color:#5C6E68">Moins de 6 mois, ressemblance exigée</span></div>
-      <div class="ant" style="background:#fff;border:1px solid #EFE9DD;border-radius:14px;padding:16px"><b style="color:#0E5A4A">✅ Format 35×45 mm</b><br><span style="font-size:13px;color:#5C6E68">Nette, sans retouche ni filigrane — norme officielle</span></div>
+      <div class="ant" style="background:#fff;border:1px solid #EFE9DD;border-radius:14px;padding:16px"><b style="color:#0E5A4A">✅ Fond clair et uni</b><br><span style="font-size:14px;color:#4A5A54">Blanc ou gris très clair, sans motifs ni ombres</span></div>
+      <div class="ant" style="background:#fff;border:1px solid #EFE9DD;border-radius:14px;padding:16px"><b style="color:#0E5A4A">✅ Visage centré</b><br><span style="font-size:14px;color:#4A5A54">Occupant environ 70 à 80 % de la hauteur de la photo</span></div>
+      <div class="ant" style="background:#fff;border:1px solid #EFE9DD;border-radius:14px;padding:16px"><b style="color:#0E5A4A">✅ Expression neutre</b><br><span style="font-size:14px;color:#4A5A54">Bouche fermée, regard face à l'objectif, yeux ouverts</span></div>
+      <div class="ant" style="background:#fff;border:1px solid #EFE9DD;border-radius:14px;padding:16px"><b style="color:#0E5A4A">✅ Tête nue</b><br><span style="font-size:14px;color:#4A5A54">Chapeau et casquette interdits (sauf motif religieux ou médical)</span></div>
+      <div class="ant" style="background:#fff;border:1px solid #EFE9DD;border-radius:14px;padding:16px"><b style="color:#0E5A4A">✅ Pas de lunettes teintées</b><br><span style="font-size:14px;color:#4A5A54">Ni de reflets ; les montures ne doivent pas cacher les yeux</span></div>
+      <div class="ant" style="background:#fff;border:1px solid #EFE9DD;border-radius:14px;padding:16px"><b style="color:#0E5A4A">✅ Éclairage uniforme</b><br><span style="font-size:14px;color:#4A5A54">Aucune ombre sur le visage ou derrière la tête</span></div>
+      <div class="ant" style="background:#fff;border:1px solid #EFE9DD;border-radius:14px;padding:16px"><b style="color:#0E5A4A">✅ Photo récente</b><br><span style="font-size:14px;color:#4A5A54">Moins de 6 mois, ressemblance exigée</span></div>
+      <div class="ant" style="background:#fff;border:1px solid #EFE9DD;border-radius:14px;padding:16px"><b style="color:#0E5A4A">✅ Format 35×45 mm</b><br><span style="font-size:14px;color:#4A5A54">Nette, sans retouche ni filigrane — norme officielle</span></div>
     </div>
-    <p style="text-align:center;font-size:12px;color:#8B9A94;margin-top:18px">Source : règles publiées par l'ANTS (ants.gouv.fr). IDValide vérifie ces critères automatiquement — gratuitement.</p>
+    <p style="text-align:center;font-size:14px;color:#5C6E68;margin-top:18px">Source : règles publiées par l'ANTS (ants.gouv.fr). IDValide vérifie ces critères automatiquement — gratuitement.</p>
   </section>
 
 
@@ -228,7 +229,7 @@
   
 
   <footer>
-    <a href="/">Accueil</a><a href="/blog/">Blog</a><a href="/politique-confidentialite.html">Confidentialité</a><a href="/cgu.html">CGU</a><button type="button" onclick="window.idvGererConsentement&&window.idvGererConsentement()" style="border:0;background:none;color:#8B9A94;margin:0 8px;font:inherit;font-size:12px;cursor:pointer">Gérer les cookies</button>
+    <a href="/">Accueil</a><a href="/blog/">Blog</a><a href="/politique-confidentialite.html">Confidentialité</a><a href="/cgu.html">CGU</a><button type="button" onclick="window.idvGererConsentement&&window.idvGererConsentement()" style="border:0;background:none;color:#3D524C;margin:0 8px;font:inherit;font-size:14px;cursor:pointer;text-decoration:underline">Gérer les cookies</button>
     <p style="margin-top:8px">© 2026 IDValide — idvalide.fr</p>
   </footer>
 
@@ -1096,7 +1097,7 @@ document.getElementById('btnRetry').onclick = () => { setEtape(1); startCamera()
 
   <div id="idvConsent" role="dialog" aria-live="polite" aria-label="Choix des cookies" style="display:none;position:fixed;left:14px;right:14px;bottom:14px;z-index:10000;background:#fff;border:1px solid #D8E4DF;border-radius:18px;padding:18px;box-shadow:0 8px 35px rgba(14,48,42,.22);max-width:620px;margin:auto">
     <div style="font-weight:900;color:#0E5A4A;font-size:16px;margin-bottom:6px">Votre confidentialité compte</div>
-    <div style="font-size:13px;color:#5C6E68;line-height:1.45;margin-bottom:12px">IDValide utilise Google Analytics uniquement pour mesurer les visites et améliorer le site. Vos photos restent toujours sur votre appareil. Vous pouvez accepter ou refuser cette mesure d’audience.</div>
+    <div style="font-size:14px;color:#4A5A54;line-height:1.45;margin-bottom:12px">IDValide utilise Google Analytics uniquement pour mesurer les visites et améliorer le site. Vos photos restent toujours sur votre appareil. Vous pouvez accepter ou refuser cette mesure d’audience.</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
       <button id="idvConsentRefuse" style="border:0;background:#EFF0EA;color:#14302A;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer">Refuser</button>
       <button id="idvConsentAccept" style="border:0;background:#0E5A4A;color:#fff;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer">Accepter</button>
