@@ -53,6 +53,17 @@
     .sous { font-size: 16px; color: #4A5A54; margin-bottom: 18px; max-width: 620px; margin-left: auto; margin-right: auto; }
     .reassur { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 640px; margin: 0 auto 22px; padding: 0 20px; }
     .reassur span { display: inline-flex; align-items: center; gap: 6px; background: #fff; border: 1px solid #E3EDE8; color: #0E5A4A; font-size: 13px; font-weight: 800; border-radius: 30px; padding: 8px 14px; }
+    .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 640px; margin: 0 auto 40px; padding: 0 20px; }
+    .how > div { background: #fff; border: 1px solid #EFE9DD; border-radius: 16px; padding: 18px 14px; text-align: center; }
+    .how .n { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: #0E5A4A; color: #fff; font-weight: 900; font-size: 15px; margin-bottom: 8px; }
+    .how .t { font-weight: 800; color: #14302A; font-size: 14px; }
+    .how .d { font-size: 13px; color: #4A5A54; margin-top: 3px; line-height: 1.4; }
+    .prive { max-width: 640px; margin: 0 auto 40px; padding: 0 20px; }
+    .prive .box { display: flex; gap: 12px; align-items: flex-start; background: #E9F3EF; border: 1px solid #CBE3D8; border-radius: 16px; padding: 16px 18px; }
+    .prive .box .ic { font-size: 22px; line-height: 1; }
+    .prive .box .tx b { color: #0E5A4A; }
+    .prive .box .tx { font-size: 14px; color: #2E4A42; }
+    @media (max-width: 560px) { .how { grid-template-columns: 1fr; } }
     .tool { max-width: 640px; margin: 0 auto 50px; padding: 0 20px; }
     .card { background: #fff; border: 1px solid #EFE9DD; border-radius: 24px; padding: 28px; box-shadow: 0 14px 44px rgba(14,90,74,.10); }
     .steps { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
@@ -184,6 +195,19 @@
       </div>
     </div>
   </section>
+
+  <div class="how">
+    <div><span class="n">1</span><div class="t">📸 Prenez un selfie</div><div class="d">devant un fond blanc, téléphone à hauteur des yeux</div></div>
+    <div><span class="n">2</span><div class="t">✅ On vérifie</div><div class="d">conformité ANTS automatique, en direct</div></div>
+    <div><span class="n">3</span><div class="t">⬇️ Téléchargez</div><div class="d">votre photo 35×45 officielle</div></div>
+  </div>
+
+  <div class="prive">
+    <div class="box">
+      <span class="ic">🔒</span>
+      <div class="tx"><b>Votre photo ne quitte jamais votre téléphone.</b> Tout le traitement se fait localement dans votre navigateur — aucune image n'est envoyée ni stockée sur un serveur. C'est ce qui nous distingue des applications qui collectent vos photos.</div>
+    </div>
+  </div>
 
 
 <!-- 💬 Avis des utilisateurs -->
