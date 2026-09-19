@@ -299,6 +299,12 @@
     // ─── Mode debug cadrage : passer à true pour voir bbox/yeux/crop superposés ───
     const DEBUG_CROP = false;
 
+    // ─── Paiement Stripe (Payment Link) ───
+    // STRIPE_ACTIF = true → le téléchargement de la planche devient payant (2,99 €).
+    // false → offre de lancement gratuite (comportement actuel).
+    const STRIPE_ACTIF = false;
+    const STRIPE_LINK = 'https://buy.stripe.com/dRm14o0lbdoX4hK5602Fa00';
+
     // ─── Calcul UNIQUE du cadrage automatique (ratio 35/45, centré sur les yeux) ───
     // Utilisé par afficherResultat() ET par le filet de sécurité de genererPlanche(),
     // pour ne jamais avoir deux logiques de cadrage différentes qui divergent.
@@ -1095,6 +1101,18 @@ document.getElementById('btnRetry').onclick = () => { setEtape(1); startCamera()
       btn.disabled = true;
       btn.textContent = '⏳ Préparation de votre planche…';
       try {
+        // ─── Paywall Stripe : persister la photo AVANT redirection, puis payer ───
+        if (STRIPE_ACTIF) {
+          try {
+            const src = photoOriginale || canvas;
+            sessionStorage.setItem('idv_photo', src.toDataURL('image/png'));
+            sessionStorage.setItem('idv_region', JSON.stringify(regionAjust));
+            sessionStorage.setItem('idv_angle', String(regionAngle || 0));
+          } catch (e) {}
+          evt('pay');
+          window.location.href = STRIPE_LINK;
+          return;
+        }
         await new Promise((r) => setTimeout(r, 60)); // laisse l'UI afficher le message
         genererPlanche(true);
         await telechargerPlanche();
@@ -1138,6 +1156,39 @@ document.getElementById('btnRetry').onclick = () => { setEtape(1); startCamera()
       if (ta) setTimeout(() => ta.focus(), 900);
       setTimeout(() => { ap.style.display = 'none'; }, 6000);
     };
+
+    // ─── Retour après paiement Stripe (?achat=ok) : restaurer la photo et télécharger ───
+    (function restaurerApresPaiement() {
+      try {
+        if (new URLSearchParams(location.search).get('achat') !== 'ok') return;
+        const data = sessionStorage.getItem('idv_photo');
+        if (!data) return;
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const c = document.createElement('canvas');
+            c.width = img.width; c.height = img.height;
+            c.getContext('2d').drawImage(img, 0, 0);
+            canvas = c;
+            photoOriginale = c;
+            try { photoData = c.getContext('2d').getImageData(0, 0, c.width, c.height); } catch (e) {}
+            try { regionAjust = JSON.parse(sessionStorage.getItem('idv_region') || 'null'); } catch (e) { regionAjust = null; }
+            regionAngle = parseFloat(sessionStorage.getItem('idv_angle') || '0') || 0;
+            ['idv_photo', 'idv_region', 'idv_angle'].forEach((k) => { try { sessionStorage.removeItem(k); } catch (e) {} });
+            genererPlanche(true);
+            setEtape(3);
+            const okEl = document.getElementById('msgOK');
+            okEl.style.display = 'block';
+            okEl.textContent = '✅ Paiement confirmé ! Votre planche 35×45 :';
+            msgG.style.display = 'none';
+            evt('pay_ok');
+            telechargerPlanche();
+            try { history.replaceState(null, '', location.pathname); } catch (e) {}
+          } catch (e) { afficherHint('Photo restaurée — appuie sur « Télécharger ».', false); }
+        };
+        img.src = data;
+      } catch (e) {}
+    })();
 
   </script>
 
