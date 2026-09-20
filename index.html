@@ -300,8 +300,7 @@
     const DEBUG_CROP = false;
 
     // ─── Paiement Stripe (Payment Link) ───
-    // STRIPE_ACTIF = true → le téléchargement de la planche devient payant (2,99 €).
-    // false → offre de lancement gratuite.
+    // STRIPE_ACTIF = true → le téléchargement de la planche est payant (2,99 €).
     const STRIPE_ACTIF = true;
     const STRIPE_LINK = 'https://buy.stripe.com/dRm14o0lbdoX4hK5602Fa00';
 
@@ -454,7 +453,6 @@
       }
     }
 
-    // Le téléchargement reste gratuit pendant l’offre de lancement.
     // ─── État ───
     let video, canvas, faceDetector = null;
     let sourceCamera = false; // caméra : crop centré sur le guide fixe ; import : centre des yeux
